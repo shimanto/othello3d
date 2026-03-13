@@ -1,0 +1,534 @@
+/* ═══════════════════════════════════════
+   style.css - 立体オセロ 3D
+   ═══════════════════════════════════════ */
+
+/* --- リセット・全体 --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  background: #0a0a1a;
+  font-family: 'Segoe UI', sans-serif;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* --- ヘッダー --- */
+h1 { font-size: 1.8rem; margin: 12px 0 4px; letter-spacing: 3px; }
+.subtitle { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+
+#header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 6px;
+}
+.score-item { display: flex; align-items: center; gap: 6px; font-size: 1.05rem; }
+.sd { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #555; }
+.sd.b { background: #111; }
+.sd.w { background: #eee; }
+#info { font-size: 1rem; margin-bottom: 6px; min-height: 1.4em; color: #adf; }
+
+/* --- レイアウト --- */
+#main {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════
+   3Dビュー
+   ═══════════════════════════════════════ */
+#scene-wrap {
+  width: min(420px, 85vw);
+  height: min(400px, 75vw);
+  perspective: 900px;
+  cursor: grab;
+  position: relative;
+  touch-action: none; /* タッチドラッグ時のスクロール防止 */
+}
+#scene-wrap:active { cursor: grabbing; }
+
+#scene {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+/* --- 3Dレイヤー --- */
+.layer3d {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  display: grid;
+  gap: 1px;
+  padding: 1px;
+  border-radius: 4px;
+}
+.layer3d.active-layer {
+  box-shadow: 0 0 12px rgba(100, 200, 255, 0.4);
+}
+
+.layer-label {
+  position: absolute;
+  left: -36px;
+  top: 50%;
+  transform: translateY(-50%) rotateY(0deg);
+  font-size: 0.75rem;
+  color: #8cf;
+  white-space: nowrap;
+}
+
+/* --- 3Dセル --- */
+.layer3d .lcell {
+  background: rgba(45, 106, 79, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.layer3d .lcell:hover { background: rgba(58, 125, 92, 0.85); }
+
+.layer3d .lcell .d3 {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.layer3d .lcell .d3.b { background: radial-gradient(circle at 35% 35%, #444, #111); }
+.layer3d .lcell .d3.w { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+
+.layer3d .lcell.hint::after {
+  content: '';
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(255, 255, 100, 0.45);
+  position: absolute;
+}
+
+/* ═══════════════════════════════════════
+   右パネル（フラットビュー）
+   ═══════════════════════════════════════ */
+#panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+#panel h3 { font-size: 0.95rem; color: #8cf; margin-bottom: 2px; }
+
+/* --- レイヤータブ --- */
+#layer-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+
+.layer-tab {
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  border: 1px solid #444;
+  background: #16213e;
+  color: #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.layer-tab:hover { background: #1a3a5c; }
+.layer-tab.active { background: #0f3460; border-color: #5dadec; color: #fff; }
+
+/* --- フラットグリッド --- */
+#flat-view {
+  display: grid;
+  gap: 2px;
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.fcell {
+  background: #2d6a4f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.fcell:hover { background: #3a7d5c; }
+
+.fcell .fd {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.fcell .fd.b { background: radial-gradient(circle at 35% 35%, #444, #111); }
+.fcell .fd.w { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+
+.fcell.hint::after {
+  content: '';
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: rgba(255, 255, 100, 0.45);
+  position: absolute;
+}
+
+.fcell .stack-num {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ═══════════════════════════════════════
+   ボタン共通
+   ═══════════════════════════════════════ */
+button {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  border: 1px solid #444;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #16213e;
+  color: #eee;
+  transition: background 0.2s;
+}
+button:hover { background: #0f3460; }
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn-group button.active { background: #0f3460; border-color: #5dadec; }
+
+.btn-group-label {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+#controls {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════
+   凡例
+   ═══════════════════════════════════════ */
+#legend {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #777;
+  text-align: center;
+  max-width: 620px;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════
+   ゲーム終了オーバーレイ
+   ═══════════════════════════════════════ */
+#gameover-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.6s;
+}
+#gameover-overlay.show {
+  display: flex;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+#gameover-box {
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.3) rotateY(180deg);
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#gameover-overlay.show #gameover-box {
+  opacity: 1;
+  transform: scale(1) rotateY(0deg);
+}
+
+#go-result {
+  font-size: 2.8rem;
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+  margin-bottom: 12px;
+}
+#go-result.black-win { color: #aaa; }
+#go-result.white-win { color: #fff; }
+#go-result.draw      { color: #f0c040; }
+
+#go-detail {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.go-disc-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.go-disc {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+.go-disc.b { background: radial-gradient(circle at 35% 35%, #555, #111); }
+.go-disc.w { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+.go-disc.winner {
+  animation: winner-pulse 1s ease-in-out infinite alternate;
+}
+.go-count { font-size: 2rem; font-weight: bold; }
+
+@keyframes winner-pulse {
+  0%   { transform: scale(1);    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5); }
+  100% { transform: scale(1.15); box-shadow: 0 0 30px rgba(100, 200, 255, 0.6),
+                                              0 0 60px rgba(100, 200, 255, 0.3); }
+}
+
+#go-restart {
+  padding: 12px 36px;
+  font-size: 1.1rem;
+  border: 2px solid #5dadec;
+  border-radius: 8px;
+  background: #0f3460;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+  transform: translateY(20px);
+}
+#gameover-overlay.show #go-restart {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.6s;
+}
+#go-restart:hover { background: #1a4a7a; transform: scale(1.05); }
+
+/* ═══════════════════════════════════════
+   紙吹雪
+   ═══════════════════════════════════════ */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -20px;
+  z-index: 1001;
+  opacity: 0.9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════
+   トップバー（言語・ナビ）
+   ═══════════════════════════════════════ */
+.top-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 0;
+}
+.nav-link {
+  color: #8cf;
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border: 1px solid #335;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.nav-link:hover { background: #1a2a4a; border-color: #5dadec; }
+.lang-select {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #222;
+  color: #ccc;
+  cursor: pointer;
+  outline: none;
+}
+.lang-select:hover { background: #333; }
+.lang-select option { background: #222; color: #ccc; }
+
+/* ═══════════════════════════════════════
+   オンライン対戦UI
+   ═══════════════════════════════════════ */
+#online-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 12px 20px;
+  background: rgba(15, 52, 96, 0.3);
+  border: 1px solid #335;
+  border-radius: 8px;
+  max-width: 400px;
+}
+.online-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+.online-btn {
+  width: 100%;
+  padding: 10px 20px !important;
+  font-size: 0.9rem !important;
+}
+.room-join {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.room-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 1rem;
+  text-align: center;
+  text-transform: uppercase;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background: #1a1a2e;
+  color: #eee;
+  letter-spacing: 3px;
+  font-family: monospace;
+}
+.room-input::placeholder { color: #556; letter-spacing: 1px; }
+
+#online-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.waiting-text {
+  color: #8cf;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.6;
+}
+.waiting-spinner {
+  width: 28px; height: 28px;
+  border: 3px solid #334;
+  border-top: 3px solid #5dadec;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.cancel-btn {
+  padding: 6px 20px !important;
+  font-size: 0.8rem !important;
+  border-color: #633 !important;
+  color: #c88 !important;
+}
+.cancel-btn:hover { background: #3a1a1a !important; }
+.copy-btn {
+  padding: 4px 16px !important;
+  font-size: 0.8rem !important;
+  border-color: #5dadec !important;
+}
+.copy-url-btn {
+  padding: 4px 16px !important;
+  font-size: 0.8rem !important;
+  border-color: #f0a030 !important;
+  color: #f0a030 !important;
+  margin-top: 4px;
+}
+.copy-url-btn:hover { background: #3a2a1a !important; }
+
+/* オンライン待機中のボタン点滅 */
+@keyframes online-pulse {
+  0%, 100% { background: #16213e; border-color: #444; }
+  50% { background: rgba(240, 160, 48, 0.35); border-color: #f0a030; }
+}
+.btn-group button.online-waiting {
+  animation: online-pulse 2s ease-in-out infinite;
+  color: #f0a030;
+}
+
+/* ═══════════════════════════════════════
+   ボード点滅（ゲーム終了時）
+   ═══════════════════════════════════════ */
+.board-flash .layer3d {
+  animation: board-glow 0.6s ease-in-out 3;
+}
+@keyframes board-glow {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.5); }
+}
+
+/* ═══════════════════════════════════════
+   モバイル対応
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  body { padding-bottom: 20px; }
+  h1 { font-size: 1.4rem; margin: 8px 0 2px; letter-spacing: 2px; }
+  .subtitle { font-size: 0.75rem; margin-bottom: 4px; }
+
+  #main { flex-direction: column; align-items: center; gap: 10px; }
+
+  #panel { width: 90vw; max-width: 400px; }
+  #panel h3 { font-size: 0.85rem; }
+
+  .btn-group { gap: 4px; margin-bottom: 4px; }
+  button { padding: 6px 14px; font-size: 0.8rem; }
+
+  #info { font-size: 0.9rem; margin-bottom: 4px; }
+  .score-item { font-size: 0.95rem; }
+
+  .layer-tab { padding: 3px 10px; font-size: 0.8rem; }
+
+  #controls { margin-top: 6px; }
+  #legend { font-size: 0.65rem; max-width: 90vw; padding: 0 8px; }
+
+  #go-result { font-size: 2rem; }
+  .go-disc { width: 44px; height: 44px; }
+  .go-count { font-size: 1.5rem; }
+  #go-detail { gap: 24px; }
+  #go-restart { padding: 10px 28px; font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.2rem; }
+  .btn-group-label { font-size: 0.65rem; }
+  button { padding: 5px 10px; font-size: 0.75rem; }
+  .layer-tab { padding: 3px 8px; font-size: 0.75rem; }
+}

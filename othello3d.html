@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>立体オセロ 3D</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  background: #0a0a1a;
+  font-family: 'Segoe UI', sans-serif;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  user-select: none;
+}
+h1 { font-size: 1.8rem; margin: 12px 0 4px; letter-spacing: 3px; }
+.subtitle { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+
+#header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 6px;
+}
+.score-item { display: flex; align-items: center; gap: 6px; font-size: 1.05rem; }
+.sd { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #555; }
+.sd.b { background: #111; }
+.sd.w { background: #eee; }
+#info { font-size: 1rem; margin-bottom: 6px; min-height: 1.4em; color: #adf; }
+
+#main {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* 3Dビュー */
+#scene-wrap {
+  width: 420px;
+  height: 400px;
+  perspective: 900px;
+  cursor: grab;
+  position: relative;
+}
+#scene-wrap:active { cursor: grabbing; }
+#scene {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+.layer3d {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  display: grid;
+  gap: 1px;
+  padding: 1px;
+  border-radius: 4px;
+}
+.layer3d .lcell {
+  background: rgba(45, 106, 79, 0.7);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.layer3d .lcell:hover { background: rgba(58, 125, 92, 0.85); }
+.layer3d .lcell .d3 {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+.layer3d .lcell .d3.b { background: radial-gradient(circle at 35% 35%, #444, #111); }
+.layer3d .lcell .d3.w { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+.layer3d .lcell.hint::after {
+  content: '';
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(255,255,100,0.45);
+  position: absolute;
+}
+.layer3d.active-layer { box-shadow: 0 0 12px rgba(100,200,255,0.4); }
+.layer-label {
+  position: absolute;
+  left: -36px;
+  top: 50%;
+  transform: translateY(-50%) rotateY(0deg);
+  font-size: 0.75rem;
+  color: #8cf;
+  white-space: nowrap;
+}
+
+/* 右パネル */
+#panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+#panel h3 { font-size: 0.95rem; color: #8cf; margin-bottom: 2px; }
+.layer-tab {
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  border: 1px solid #444;
+  background: #16213e;
+  color: #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.layer-tab:hover { background: #1a3a5c; }
+.layer-tab.active { background: #0f3460; border-color: #5dadec; color: #fff; }
+
+#flat-view {
+  display: grid;
+  gap: 2px;
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 2px;
+}
+.fcell {
+  background: #2d6a4f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.fcell:hover { background: #3a7d5c; }
+.fcell .fd {
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.fcell .fd.b { background: radial-gradient(circle at 35% 35%, #444, #111); }
+.fcell .fd.w { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+.fcell.hint::after {
+  content: '';
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: rgba(255,255,100,0.45);
+  position: absolute;
+}
+.fcell .stack-num {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ボタン共通 */
+button {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  border: 1px solid #444;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #16213e;
+  color: #eee;
+  transition: background 0.2s;
+}
+button:hover { background: #0f3460; }
+
+/* 設定ボタン群 */
+.btn-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn-group button.active { background: #0f3460; border-color: #5dadec; }
+.btn-group-label {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+#controls {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#legend {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #777;
+  text-align: center;
+  max-width: 620px;
+  line-height: 1.5;
+}
+#layer-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+
+/* ゲーム終了オーバーレイ */
+#gameover-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.6s;
+}
+#gameover-overlay.show {
+  display: flex;
+  background: rgba(0,0,0,0.7);
+}
+#gameover-box {
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.3) rotateY(180deg);
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#gameover-overlay.show #gameover-box {
+  opacity: 1;
+  transform: scale(1) rotateY(0deg);
+}
+#go-result {
+  font-size: 2.8rem;
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+  margin-bottom: 12px;
+}
+#go-result.black-win { color: #aaa; }
+#go-result.white-win { color: #fff; }
+#go-result.draw { color: #f0c040; }
+#go-detail {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.go-disc-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.go-disc {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.go-disc.b { background: radial-gradient(circle at 35% 35%, #555, #111); }
+.go-disc.w { background: radial-gradient(circle at 35% 35%, #fff, #bbb); }
+.go-disc.winner {
+  animation: winner-pulse 1s ease-in-out infinite alternate;
+}
+.go-count { font-size: 2rem; font-weight: bold; }
+@keyframes winner-pulse {
+  0%   { transform: scale(1);   box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+  100% { transform: scale(1.15); box-shadow: 0 0 30px rgba(100,200,255,0.6), 0 0 60px rgba(100,200,255,0.3); }
+}
+#go-restart {
+  padding: 12px 36px;
+  font-size: 1.1rem;
+  border: 2px solid #5dadec;
+  border-radius: 8px;
+  background: #0f3460;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+  transform: translateY(20px);
+}
+#gameover-overlay.show #go-restart {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.6s;
+}
+#go-restart:hover { background: #1a4a7a; transform: scale(1.05); }
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -20px;
+  z-index: 1001;
+  opacity: 0.9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+.board-flash .layer3d {
+  animation: board-glow 0.6s ease-in-out 3;
+}
+@keyframes board-glow {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.5); }
+}
+</style>
+</head>
+<body>
+
+<h1>立体オセロ 3D</h1>
+<div class="subtitle" id="subtitle">8×8 × 3層 ─ 重力あり・26方向反転</div>
+
+<!-- ボードサイズ選択 -->
+<div class="btn-group-label">ボードサイズ</div>
+<div class="btn-group" id="size-btns">
+  <button onclick="setSize(6)"  id="btnS6">6×6<br><span style="font-size:0.7rem;color:#8cf;">初級</span></button>
+  <button onclick="setSize(8)"  id="btnS8" class="active">8×8<br><span style="font-size:0.7rem;color:#8cf;">中級</span></button>
+  <button onclick="setSize(10)" id="btnS10">10×10<br><span style="font-size:0.7rem;color:#8cf;">上級</span></button>
+</div>
+
+<!-- モード選択 -->
+<div class="btn-group" id="mode-btns">
+  <button id="btnPvP" class="active" onclick="setMode('pvp')">対人戦</button>
+  <button id="btnPvC" onclick="setMode('pvc')">CPU対戦</button>
+</div>
+
+<div id="header">
+  <div class="score-item"><div class="sd b"></div><span id="sc-b">2</span></div>
+  <div class="score-item"><div class="sd w"></div><span id="sc-w">2</span></div>
+</div>
+<div id="info">黒の番です</div>
+
+<div id="main">
+  <div id="scene-wrap">
+    <div id="scene"></div>
+  </div>
+  <div id="panel">
+    <h3>レイヤービュー</h3>
+    <div id="layer-tabs"></div>
+    <div id="flat-view"></div>
+    <div style="font-size:0.75rem;color:#888;margin-top:2px;">クリックで配置（重力で最下層へ）</div>
+  </div>
+</div>
+
+<div id="controls">
+  <button onclick="init()">リセット</button>
+</div>
+<div id="legend">
+  ルール: 石は重力で下層から積まれます（最大3段）。反転は平面8方向＋上下＋斜め上下の計26方向で判定。<br>
+  3Dビューはドラッグで回転できます。右パネルで各層を確認できます。
+</div>
+
+<!-- ゲーム終了オーバーレイ -->
+<div id="gameover-overlay">
+  <div id="gameover-box">
+    <div id="go-result"></div>
+    <div id="go-detail">
+      <div class="go-disc-wrap">
+        <div class="go-disc b" id="go-disc-b"></div>
+        <div class="go-count" id="go-bc"></div>
+      </div>
+      <div style="font-size:2rem;align-self:center;color:#666;">vs</div>
+      <div class="go-disc-wrap">
+        <div class="go-disc w" id="go-disc-w"></div>
+        <div class="go-count" id="go-wc"></div>
+      </div>
+    </div>
+    <button id="go-restart" onclick="closeOverlay(); init();">もう一度プレイ</button>
+  </div>
+</div>
+
+<script>
+const E = 0, B = 1, W = 2;
+const SZ = 3;
+
+const DIR26 = [];
+for (let dz = -1; dz <= 1; dz++)
+  for (let dy = -1; dy <= 1; dy++)
+    for (let dx = -1; dx <= 1; dx++)
+      if (dx || dy || dz) DIR26.push([dx, dy, dz]);
+
+let SX = 8, SY = 8;
+let board, turn, gameOver, mode = 'pvp';
+let viewLayer = 0;
+let rotX = -35, rotY = 30, dragging = false, lastMX, lastMY;
+
+// ═══════════════════════════════════════
+//  ボードサイズ変更
+// ═══════════════════════════════════════
+function setSize(n) {
+  SX = n; SY = n;
+  document.getElementById('btnS6').classList.toggle('active', n === 6);
+  document.getElementById('btnS8').classList.toggle('active', n === 8);
+  document.getElementById('btnS10').classList.toggle('active', n === 10);
+  document.getElementById('subtitle').textContent = `${n}×${n} × ${SZ}層 ─ 重力あり・26方向反転`;
+  init();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnPvP').classList.toggle('active', m === 'pvp');
+  document.getElementById('btnPvC').classList.toggle('active', m === 'pvc');
+  init();
+}
+
+// ═══════════════════════════════════════
+//  位置重みテーブルを動的生成
+// ═══════════════════════════════════════
+function buildPosWeights(n) {
+  const w = Array.from({length: n}, () => Array(n).fill(0));
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const dy = Math.min(y, n - 1 - y);
+      const dx = Math.min(x, n - 1 - x);
+      // 角
+      if (dy === 0 && dx === 0) { w[y][x] = 120; continue; }
+      // 角の隣（危険）
+      if ((dy === 0 && dx === 1) || (dy === 1 && dx === 0)) { w[y][x] = -30; continue; }
+      // 角の斜め（最も危険）
+      if (dy === 1 && dx === 1) { w[y][x] = -60; continue; }
+      // 辺
+      if (dy === 0 || dx === 0) { w[y][x] = 15; continue; }
+      // 辺の隣の内側
+      if (dy === 1 || dx === 1) { w[y][x] = -5; continue; }
+      // 内側
+      w[y][x] = Math.max(0, 3 - Math.abs(dy - dx));
+    }
+  }
+  return w;
+}
+
+const Z_W = [10, 6, 2];
+
+// ═══════════════════════════════════════
+//  初期化
+// ═══════════════════════════════════════
+function init() {
+  closeOverlay();
+  board = Array.from({length: SZ}, () =>
+    Array.from({length: SY}, () => Array(SX).fill(E)));
+  const cy = Math.floor(SY / 2), cx = Math.floor(SX / 2);
+  // L1: 初期配置
+  board[0][cy - 1][cx - 1] = W; board[0][cy - 1][cx] = B;
+  board[0][cy][cx - 1]     = B; board[0][cy][cx]     = W;
+  // L2: L1と互い違い
+  board[1][cy - 1][cx - 1] = B; board[1][cy - 1][cx] = W;
+  board[1][cy][cx - 1]     = W; board[1][cy][cx]     = B;
+  turn = B;
+  gameOver = false;
+  viewLayer = 0;
+  applyDynamicSizes();
+  buildLayerTabs();
+  render();
+}
+
+// ═══════════════════════════════════════
+//  動的サイズ適用
+// ═══════════════════════════════════════
+function applyDynamicSizes() {
+  // 3Dレイヤーサイズ計算
+  const maxBoardPx = 320;
+  const cellPx3d = Math.floor(maxBoardPx / SX);
+  const boardPx3d = cellPx3d * SX;
+  document.documentElement.style.setProperty('--board3d', boardPx3d + 'px');
+  document.documentElement.style.setProperty('--half3d', -(boardPx3d / 2) + 'px');
+  document.documentElement.style.setProperty('--cols', SX);
+
+  // フラットビュー
+  const flatMax = 280;
+  const cellFlat = Math.floor(flatMax / SX);
+  const flatPx = cellFlat * SX;
+  const fv = document.getElementById('flat-view');
+  fv.style.gridTemplateColumns = `repeat(${SX}, 1fr)`;
+  fv.style.width = flatPx + 'px';
+  fv.style.height = flatPx + 'px';
+}
+
+// ═══════════════════════════════════════
+//  ロジック
+// ═══════════════════════════════════════
+function inBounds(x, y, z) {
+  return x >= 0 && x < SX && y >= 0 && y < SY && z >= 0 && z < SZ;
+}
+
+function dropZ(x, y) {
+  for (let z = 0; z < SZ; z++) if (board[z][y][x] === E) return z;
+  return -1;
+}
+
+function dropZ_b(b, x, y) {
+  for (let z = 0; z < SZ; z++) if (b[z][y][x] === E) return z;
+  return -1;
+}
+
+function getFlips(b, x, y, z, player) {
+  if (b[z][y][x] !== E) return [];
+  const opp = player === B ? W : B;
+  let all = [];
+  for (const [dx, dy, dz] of DIR26) {
+    let flips = [];
+    let nx = x + dx, ny = y + dy, nz = z + dz;
+    while (inBounds(nx, ny, nz) && b[nz][ny][nx] === opp) {
+      flips.push([nx, ny, nz]);
+      nx += dx; ny += dy; nz += dz;
+    }
+    if (flips.length > 0 && inBounds(nx, ny, nz) && b[nz][ny][nx] === player) {
+      all.push(...flips);
+    }
+  }
+  return all;
+}
+
+function getValidMoves(b, player) {
+  let moves = [];
+  for (let x = 0; x < SX; x++)
+    for (let y = 0; y < SY; y++) {
+      const z = dropZ_b(b, x, y);
+      if (z < 0) continue;
+      const f = getFlips(b, x, y, z, player);
+      if (f.length > 0) moves.push({x, y, z, flips: f});
+    }
+  return moves;
+}
+
+function countPieces(b) {
+  let bc = 0, wc = 0;
+  for (let z = 0; z < SZ; z++)
+    for (let y = 0; y < SY; y++)
+      for (let x = 0; x < SX; x++) {
+        if (b[z][y][x] === B) bc++;
+        if (b[z][y][x] === W) wc++;
+      }
+  return {bc, wc};
+}
+
+function place(x, y) {
+  if (gameOver) return;
+  const z = dropZ(x, y);
+  if (z < 0) return;
+  const flips = getFlips(board, x, y, z, turn);
+  if (flips.length === 0) return;
+  board[z][y][x] = turn;
+  for (const [fx, fy, fz] of flips) board[fz][fy][fx] = turn;
+  nextTurn();
+}
+
+function nextTurn() {
+  const opp = turn === B ? W : B;
+  if (getValidMoves(board, opp).length > 0) {
+    turn = opp;
+  } else if (getValidMoves(board, turn).length === 0) {
+    gameOver = true;
+  }
+  render();
+  if (gameOver) { setTimeout(showGameOver, 300); return; }
+  if (mode === 'pvc' && turn === W) setTimeout(cpuMove, 400);
+}
+
+// ═══════════════════════════════════════
+//  ゲーム終了演出
+// ═══════════════════════════════════════
+function showGameOver() {
+  const {bc, wc} = countPieces(board);
+  const overlay = document.getElementById('gameover-overlay');
+  const result = document.getElementById('go-result');
+  const discB = document.getElementById('go-disc-b');
+  const discW = document.getElementById('go-disc-w');
+  document.getElementById('go-bc').textContent = bc;
+  document.getElementById('go-wc').textContent = wc;
+  discB.classList.remove('winner');
+  discW.classList.remove('winner');
+  if (bc > wc) {
+    result.textContent = '黒の勝利！';
+    result.className = 'black-win';
+    discB.classList.add('winner');
+  } else if (wc > bc) {
+    result.textContent = '白の勝利！';
+    result.className = 'white-win';
+    discW.classList.add('winner');
+  } else {
+    result.textContent = '引き分け！';
+    result.className = 'draw';
+  }
+  overlay.classList.add('show');
+  document.getElementById('scene').classList.add('board-flash');
+  spawnConfetti();
+}
+
+function closeOverlay() {
+  document.getElementById('gameover-overlay').classList.remove('show');
+  document.getElementById('scene').classList.remove('board-flash');
+  document.querySelectorAll('.confetti').forEach(c => c.remove());
+}
+
+function spawnConfetti() {
+  const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff78ae','#a66cff','#fff'];
+  const shapes = ['circle','square','rect'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const size = 6 + Math.random() * 10;
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.width = size + 'px';
+    el.style.height = (shape === 'rect' ? size * 2.5 : size) + 'px';
+    el.style.borderRadius = shape === 'circle' ? '50%' : '2px';
+    el.style.background = color;
+    el.style.animationDuration = (2 + Math.random() * 3) + 's';
+    el.style.animationDelay = (Math.random() * 1.5) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 6000);
+  }
+}
+
+// ═══════════════════════════════════════
+//  CPU
+// ═══════════════════════════════════════
+function cpuMove() {
+  if (gameOver || turn !== W) return;
+  const moves = getValidMoves(board, W);
+  if (moves.length === 0) return;
+  const PW = buildPosWeights(SX);
+
+  let best = null, bestScore = -Infinity;
+  for (const m of moves) {
+    let score = PW[m.y][m.x] + Z_W[m.z] + m.flips.length * 2;
+    const nb = cloneBoard(board);
+    nb[m.z][m.y][m.x] = W;
+    for (const [fx, fy, fz] of m.flips) nb[fz][fy][fx] = W;
+    const oppMoves = getValidMoves(nb, B);
+    if (oppMoves.length > 0) {
+      const oppBest = Math.max(...oppMoves.map(om =>
+        PW[om.y][om.x] + Z_W[om.z] + om.flips.length * 2));
+      score -= oppBest * 0.6;
+    } else {
+      score += 30;
+    }
+    if (score > bestScore) { bestScore = score; best = m; }
+  }
+
+  board[best.z][best.y][best.x] = W;
+  for (const [fx, fy, fz] of best.flips) board[fz][fy][fx] = W;
+  nextTurn();
+}
+
+function cloneBoard(b) {
+  return b.map(layer => layer.map(row => [...row]));
+}
+
+// ═══════════════════════════════════════
+//  描画
+// ═══════════════════════════════════════
+function buildLayerTabs() {
+  const cont = document.getElementById('layer-tabs');
+  cont.innerHTML = '';
+  for (let z = SZ - 1; z >= 0; z--) {
+    const btn = document.createElement('button');
+    btn.className = 'layer-tab' + (z === viewLayer ? ' active' : '');
+    btn.textContent = `L${z + 1}`;
+    btn.onclick = () => { viewLayer = z; render(); };
+    cont.appendChild(btn);
+  }
+}
+
+function render() {
+  const validMoves = gameOver ? [] : getValidMoves(board, turn);
+  const {bc, wc} = countPieces(board);
+  document.getElementById('sc-b').textContent = bc;
+  document.getElementById('sc-w').textContent = wc;
+
+  const info = document.getElementById('info');
+  if (gameOver) {
+    if (bc > wc) info.textContent = `ゲーム終了！ 黒の勝ち (${bc} - ${wc})`;
+    else if (wc > bc) info.textContent = `ゲーム終了！ 白の勝ち (${wc} - ${bc})`;
+    else info.textContent = `ゲーム終了！ 引き分け (${bc} - ${wc})`;
+  } else if (mode === 'pvc' && turn === W) {
+    info.textContent = 'CPUが考えています...';
+  } else {
+    info.textContent = `${turn === B ? '黒' : '白'}の番です（有効手: ${validMoves.length}）`;
+  }
+
+  buildLayerTabs();
+  renderFlat(validMoves);
+  render3D(validMoves);
+}
+
+function renderFlat(validMoves) {
+  const cont = document.getElementById('flat-view');
+  cont.innerHTML = '';
+  const z = viewLayer;
+  for (let y = 0; y < SY; y++) {
+    for (let x = 0; x < SX; x++) {
+      const cell = document.createElement('div');
+      cell.className = 'fcell';
+      const v = board[z][y][x];
+      if (v !== E) {
+        const d = document.createElement('div');
+        d.className = 'fd ' + (v === B ? 'b' : 'w');
+        cell.appendChild(d);
+      }
+      const m = validMoves.find(m => m.x === x && m.y === y);
+      if (m && m.z === z && !(mode === 'pvc' && turn === W)) {
+        cell.classList.add('hint');
+      }
+      let stackH = 0;
+      for (let sz = 0; sz < SZ; sz++) if (board[sz][y][x] !== E) stackH = sz + 1;
+      if (stackH > 1 && z === 0) {
+        const sn = document.createElement('span');
+        sn.className = 'stack-num';
+        sn.textContent = stackH;
+        cell.appendChild(sn);
+      }
+      const cx = x, cy = y;
+      cell.onclick = () => {
+        if (mode === 'pvc' && turn === W) return;
+        place(cx, cy);
+      };
+      cont.appendChild(cell);
+    }
+  }
+}
+
+function render3D(validMoves) {
+  const scene = document.getElementById('scene');
+  scene.innerHTML = '';
+
+  const maxPx = SX <= 6 ? 280 : SX <= 8 ? 320 : 340;
+  const cellPx = Math.floor(maxPx / SX);
+  const boardPx = cellPx * SX;
+  const halfPx = boardPx / 2;
+  const layerGap = 80;
+  const baseOffset = -(SZ - 1) * layerGap / 2;
+
+  for (let z = 0; z < SZ; z++) {
+    const layer = document.createElement('div');
+    layer.className = 'layer3d' + (z === viewLayer ? ' active-layer' : '');
+    const tz = baseOffset + z * layerGap;
+    layer.style.width = boardPx + 'px';
+    layer.style.height = boardPx + 'px';
+    layer.style.marginLeft = -halfPx + 'px';
+    layer.style.marginTop = -halfPx + 'px';
+    layer.style.gridTemplateColumns = `repeat(${SX}, 1fr)`;
+    layer.style.transform = `translateZ(${tz}px)`;
+    layer.style.background = `rgba(20,60,40,${0.88 - z * 0.1})`;
+    layer.style.border = z === viewLayer
+      ? '2px solid rgba(100,200,255,0.5)'
+      : '1px solid rgba(255,255,255,0.1)';
+
+    const label = document.createElement('div');
+    label.className = 'layer-label';
+    label.textContent = `L${z + 1}`;
+    layer.appendChild(label);
+
+    for (let y = 0; y < SY; y++) {
+      for (let x = 0; x < SX; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'lcell';
+        const v = board[z][y][x];
+        if (v !== E) {
+          const d = document.createElement('div');
+          d.className = 'd3 ' + (v === B ? 'b' : 'w');
+          cell.appendChild(d);
+        }
+        const m = validMoves.find(m => m.x === x && m.y === y && m.z === z);
+        if (m && !(mode === 'pvc' && turn === W)) {
+          cell.classList.add('hint');
+        }
+        const cx = x, cy = y;
+        cell.onclick = () => {
+          if (mode === 'pvc' && turn === W) return;
+          place(cx, cy);
+        };
+        layer.appendChild(cell);
+      }
+    }
+    scene.appendChild(layer);
+  }
+  updateSceneTransform();
+}
+
+function updateSceneTransform() {
+  document.getElementById('scene').style.transform =
+    `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+}
+
+// ═══════════════════════════════════════
+//  3D回転ドラッグ
+// ═══════════════════════════════════════
+const sw = document.getElementById('scene-wrap');
+sw.addEventListener('mousedown', e => {
+  dragging = true; lastMX = e.clientX; lastMY = e.clientY;
+  e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  rotY += (e.clientX - lastMX) * 0.5;
+  rotX += (e.clientY - lastMY) * 0.4;
+  rotX = Math.max(-80, Math.min(10, rotX));
+  lastMX = e.clientX; lastMY = e.clientY;
+  updateSceneTransform();
+});
+window.addEventListener('mouseup', () => { dragging = false; });
+
+sw.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    dragging = true;
+    lastMX = e.touches[0].clientX;
+    lastMY = e.touches[0].clientY;
+  }
+}, {passive: true});
+window.addEventListener('touchmove', e => {
+  if (!dragging || e.touches.length !== 1) return;
+  rotY += (e.touches[0].clientX - lastMX) * 0.5;
+  rotX += (e.touches[0].clientY - lastMY) * 0.4;
+  rotX = Math.max(-80, Math.min(10, rotX));
+  lastMX = e.touches[0].clientX;
+  lastMY = e.touches[0].clientY;
+  updateSceneTransform();
+}, {passive: true});
+window.addEventListener('touchend', () => { dragging = false; });
+
+init();
+</script>
+</body>
+</html>
