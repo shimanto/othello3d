@@ -6,7 +6,7 @@
  * i18n / オンライン対戦 / レイヤー数選択に対応。
  */
 
-import { CELL, DEFAULT_BOARD_SIZE, DEFAULT_LAYER_COUNT, LAYER_COUNT, setLayerCount, TIMING } from './config.js';
+import { CELL, DEFAULT_BOARD_SIZE, DEFAULT_LAYER_COUNT, setLayerCount, TIMING } from './config.js';
 import { Board } from './board.js';
 import { CpuPlayer } from './cpu.js';
 import { Renderer } from './renderer.js';
@@ -22,7 +22,7 @@ class GameState {
   constructor() {
     this.boardSize = DEFAULT_BOARD_SIZE;
     this.layerCount = DEFAULT_LAYER_COUNT;
-    this.mode = 'pvp';       // 'pvp' | 'pvc' | 'online'
+    this.mode = 'pvp'; // 'pvp' | 'pvc' | 'online'
     this.turn = CELL.BLACK;
     this.gameOver = false;
     this.viewLayer = 0;
@@ -31,12 +31,12 @@ class GameState {
     // オンライン対戦用（アクティブゲーム）
     this.playerId = this._getOrCreatePlayerId();
     this.roomId = null;
-    this.myColor = null;    // 'black' | 'white'
-    this.onlinePollTimer = null;   // ゲーム中のポーリング
+    this.myColor = null; // 'black' | 'white'
+    this.onlinePollTimer = null; // ゲーム中のポーリング
     this.queueId = null;
 
     // 待機状態（モード切替でも保持）
-    this.waitingType = null;       // 'queue' | 'room' | null
+    this.waitingType = null; // 'queue' | 'room' | null
     this.waitingRoomId = null;
     this.waitingQueueId = null;
     this.waitingPollTimer = null;
@@ -75,13 +75,12 @@ class Game {
     this.effects = new Effects();
 
     this.renderer = new Renderer({
-      onCellClick:   (x, y) => this.handleCellClick(x, y),
-      onLayerSelect: (z)    => this.handleLayerSelect(z),
+      onCellClick: (x, y) => this.handleCellClick(x, y),
+      onLayerSelect: (z) => this.handleLayerSelect(z),
     });
 
-    this.input = new InputHandler(
-      document.getElementById('scene-wrap'),
-      (rotX, rotY) => this.renderer.updateSceneRotation(rotX, rotY)
+    this.input = new InputHandler(document.getElementById('scene-wrap'), (rotX, rotY) =>
+      this.renderer.updateSceneRotation(rotX, rotY),
     );
 
     this._bindButtons();
@@ -117,7 +116,11 @@ class Game {
     s.myColor = null;
     s.queueId = null;
 
-    this.renderer.updateSubtitle(s.boardSize, s.layerCount, i18n.t('subtitle', s.boardSize, s.layerCount));
+    this.renderer.updateSubtitle(
+      s.boardSize,
+      s.layerCount,
+      i18n.t('subtitle', s.boardSize, s.layerCount),
+    );
     this.renderer.updateFlatViewSize(s.boardSize);
     this._render();
   }
@@ -128,7 +131,9 @@ class Game {
     document.getElementById('btnPvP').classList.toggle('active', mode === 'pvp');
     document.getElementById('btnPvC').classList.toggle('active', mode === 'pvc');
     // onlineボタンは待機中ならactiveのままにする場合もあるが、モード切替時はmodeに従う
-    document.getElementById('btnOnline').classList.toggle('active', mode === 'online' || !!s.waitingType);
+    document
+      .getElementById('btnOnline')
+      .classList.toggle('active', mode === 'online' || !!s.waitingType);
 
     if (mode === 'online') {
       // 待機中ならパネルにwaitingを表示、そうでなければactionsを表示
@@ -214,7 +219,11 @@ class Game {
     }
 
     const s = this.state;
-    this.renderer.updateSubtitle(s.boardSize, s.layerCount, i18n.t('subtitle', s.boardSize, s.layerCount));
+    this.renderer.updateSubtitle(
+      s.boardSize,
+      s.layerCount,
+      i18n.t('subtitle', s.boardSize, s.layerCount),
+    );
   }
 
   // ───────────────────────────────────
@@ -292,13 +301,13 @@ class Game {
     const isOnlineWaiting = s.mode === 'online' && !s.isMyTurn && !s.gameOver;
 
     this.renderer.render({
-      board:        s.board,
-      turn:         s.turn,
-      gameOver:     s.gameOver,
+      board: s.board,
+      turn: s.turn,
+      gameOver: s.gameOver,
       isCpuThinking: s.isCpuThinking || isOnlineWaiting,
-      viewLayer:    s.viewLayer,
-      validMoves:   s.gameOver ? [] : s.board.getValidMoves(s.board.grid, s.turn),
-      pieces:       s.board.countPieces(),
+      viewLayer: s.viewLayer,
+      validMoves: s.gameOver ? [] : s.board.getValidMoves(s.board.grid, s.turn),
+      pieces: s.board.countPieces(),
     });
 
     // オンラインモードの情報表示を上書き
@@ -415,7 +424,9 @@ class Game {
         copyBtn.onclick = () => {
           navigator.clipboard.writeText(data.roomId);
           copyBtn.textContent = i18n.t('copied');
-          setTimeout(() => { copyBtn.textContent = i18n.t('shareCode'); }, 1500);
+          setTimeout(() => {
+            copyBtn.textContent = i18n.t('shareCode');
+          }, 1500);
         };
       }
 
@@ -426,7 +437,9 @@ class Game {
         copyUrlBtn.onclick = () => {
           navigator.clipboard.writeText(directUrl);
           copyUrlBtn.textContent = i18n.t('copied');
-          setTimeout(() => { copyUrlBtn.textContent = i18n.t('copyUrl'); }, 1500);
+          setTimeout(() => {
+            copyUrlBtn.textContent = i18n.t('copyUrl');
+          }, 1500);
         };
       }
 
@@ -671,7 +684,7 @@ class Game {
     window.gameSetMode = (m) => this.setMode(m);
     window.gameSetSize = (n) => this.setSize(n);
     window.gameSetLayers = (n) => this.setLayers(n);
-    window.gameInit    = ()  => this.init();
+    window.gameInit = () => this.init();
     window.gameCloseOverlay = () => {
       this.effects.closeOverlay();
       this.renderer.setBoardFlash(false);

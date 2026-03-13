@@ -60,14 +60,18 @@ export async function onRequestPost(context) {
     await KV.delete(queueKey);
 
     // Store mapping so the waiting player can find their room
-    await KV.put(`player-room:${existing.playerId}`, JSON.stringify({ roomId, color: 'black' }), { expirationTtl: 300 });
+    await KV.put(`player-room:${existing.playerId}`, JSON.stringify({ roomId, color: 'black' }), {
+      expirationTtl: 300,
+    });
 
     return jsonResponse({ status: 'matched', roomId, color: 'white' });
   }
 
   // No match — add to queue
   const queueId = `${playerId}-${Date.now()}`;
-  await KV.put(queueKey, JSON.stringify({ playerId, queueId, boardSize, layerCount }), { expirationTtl: 300 });
+  await KV.put(queueKey, JSON.stringify({ playerId, queueId, boardSize, layerCount }), {
+    expirationTtl: 300,
+  });
 
   return jsonResponse({ status: 'waiting', queueId });
 }

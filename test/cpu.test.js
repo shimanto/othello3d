@@ -45,7 +45,7 @@ describe('CpuPlayer: selectMove', () => {
     const cpu = new CpuPlayer();
     const move = cpu.selectMove(board);
     const validMoves = board.getValidMoves(board.grid, CELL.WHITE);
-    const found = validMoves.some(m => m.x === move.x && m.y === move.y && m.z === move.z);
+    const found = validMoves.some((m) => m.x === move.x && m.y === move.y && m.z === move.z);
     assert.ok(found, '選択された手は有効手リストに含まれるべき');
   });
 
@@ -86,8 +86,7 @@ describe('CpuPlayer: applyMove', () => {
     const move = cpu.selectMove(board);
     cpu.applyMove(board, move);
     for (const [fx, fy, fz] of move.flips) {
-      assert.equal(board.grid[fz][fy][fx], CELL.WHITE,
-        `(${fx},${fy},${fz}) が白に反転すべき`);
+      assert.equal(board.grid[fz][fy][fx], CELL.WHITE, `(${fx},${fy},${fz}) が白に反転すべき`);
     }
   });
 
@@ -99,10 +98,7 @@ describe('CpuPlayer: applyMove', () => {
     cpu.applyMove(board, move);
     const after = board.countPieces();
     // 総石数は +1
-    assert.equal(
-      after.black + after.white,
-      before.black + before.white + 1
-    );
+    assert.equal(after.black + after.white, before.black + before.white + 1);
   });
 });
 
@@ -180,7 +176,7 @@ describe('CpuPlayer: 角の優先', () => {
     if (move) {
       // 角(0,0)に置ける手がある場合、それを選ぶべき
       const validMoves = board.getValidMoves(board.grid, CELL.WHITE);
-      const cornerMove = validMoves.find(m => m.x === 0 && m.y === 0);
+      const cornerMove = validMoves.find((m) => m.x === 0 && m.y === 0);
       if (cornerMove) {
         assert.equal(move.x, 0, '角のx座標');
         assert.equal(move.y, 0, '角のy座標');

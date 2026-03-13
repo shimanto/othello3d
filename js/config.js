@@ -30,8 +30,8 @@ export const DEFAULT_LAYER_COUNT = 3;
 
 // 選択可能なボードサイズ
 export const BOARD_SIZES = [
-  { size: 6,  label: '6×6',  difficulty: '初級' },
-  { size: 8,  label: '8×8',  difficulty: '中級' },
+  { size: 6, label: '6×6', difficulty: '初級' },
+  { size: 8, label: '8×8', difficulty: '中級' },
 ];
 
 // デフォルトのボードサイズ
@@ -42,8 +42,7 @@ export const DIRECTIONS_26 = (() => {
   const dirs = [];
   for (let dz = -1; dz <= 1; dz++)
     for (let dy = -1; dy <= 1; dy++)
-      for (let dx = -1; dx <= 1; dx++)
-        if (dx || dy || dz) dirs.push([dx, dy, dz]);
+      for (let dx = -1; dx <= 1; dx++) if (dx || dy || dz) dirs.push([dx, dy, dz]);
   return dirs;
 })();
 

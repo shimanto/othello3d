@@ -14,11 +14,11 @@ export class Effects {
   constructor() {
     this.els = {
       overlay: document.getElementById('gameover-overlay'),
-      result:  document.getElementById('go-result'),
-      discB:   document.getElementById('go-disc-b'),
-      discW:   document.getElementById('go-disc-w'),
-      countB:  document.getElementById('go-bc'),
-      countW:  document.getElementById('go-wc'),
+      result: document.getElementById('go-result'),
+      discB: document.getElementById('go-disc-b'),
+      discW: document.getElementById('go-disc-w'),
+      countB: document.getElementById('go-bc'),
+      countW: document.getElementById('go-wc'),
     };
   }
 
@@ -55,7 +55,7 @@ export class Effects {
   /** オーバーレイを閉じる */
   closeOverlay() {
     this.els.overlay.classList.remove('show');
-    document.querySelectorAll('.confetti').forEach(el => el.remove());
+    document.querySelectorAll('.confetti').forEach((el) => el.remove());
   }
 
   /** 紙吹雪を生成 */
@@ -73,8 +73,8 @@ export class Effects {
       el.style.height = (shape === 'rect' ? size * 2.5 : size) + 'px';
       el.style.borderRadius = shape === 'circle' ? '50%' : '2px';
       el.style.background = color;
-      el.style.animationDuration = (2 + Math.random() * 3) + 's';
-      el.style.animationDelay = (Math.random() * 1.5) + 's';
+      el.style.animationDuration = 2 + Math.random() * 3 + 's';
+      el.style.animationDelay = Math.random() * 1.5 + 's';
 
       document.body.appendChild(el);
       setTimeout(() => el.remove(), TIMING.CONFETTI_LIFETIME_MS);

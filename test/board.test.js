@@ -55,8 +55,7 @@ describe('Board: グリッド生成', () => {
     const board = new Board(6, 6);
     for (let z = 0; z < LAYER_COUNT; z++)
       for (let y = 0; y < 6; y++)
-        for (let x = 0; x < 6; x++)
-          assert.equal(board.grid[z][y][x], CELL.EMPTY);
+        for (let x = 0; x < 6; x++) assert.equal(board.grid[z][y][x], CELL.EMPTY);
   });
 
   it('6×6 でもグリッドが正しく生成される', () => {
@@ -87,8 +86,7 @@ describe('Board: 初期配置', () => {
   it('L3 は空のままである', () => {
     const board = createDefaultBoard();
     for (let y = 0; y < 8; y++)
-      for (let x = 0; x < 8; x++)
-        assert.equal(board.grid[2][y][x], CELL.EMPTY);
+      for (let x = 0; x < 8; x++) assert.equal(board.grid[2][y][x], CELL.EMPTY);
   });
 
   it('初期配置の石数は黒4白4の合計8個', () => {
@@ -216,10 +214,10 @@ describe('Board: getFlips（反転判定）', () => {
   it('複数方向の反転が同時に検出される', () => {
     const board = new Board(8, 8);
     // 水平と垂直の両方で反転が起きる配置
-    board.grid[0][3][3] = CELL.BLACK;  // 挟む用（水平右端）
-    board.grid[0][3][1] = CELL.WHITE;  // 反転対象（水平）
-    board.grid[1][3][0] = CELL.WHITE;  // 反転対象（垂直）
-    board.grid[2][3][0] = CELL.BLACK;  // 挟む用（垂直上端）
+    board.grid[0][3][3] = CELL.BLACK; // 挟む用（水平右端）
+    board.grid[0][3][1] = CELL.WHITE; // 反転対象（水平）
+    board.grid[1][3][0] = CELL.WHITE; // 反転対象（垂直）
+    board.grid[2][3][0] = CELL.BLACK; // 挟む用（垂直上端）
     // 黒が (0,3,0) に置く → (1,3,0) 水平方向は白が1つで黒が (3,3,0) にある
     // 実際のテスト: 黒が (2,3,0) に置くと (1,3,0) を挟む → 反転が起きるか？
     // (2,3,0) に黒を置く: 左に (1,3,0)=白、(0,3,0)=空なので反転なし
@@ -308,8 +306,7 @@ describe('Board: placePiece', () => {
     board.placePiece(move.x, move.y, CELL.BLACK);
     // 反転した石が黒になっているか
     for (const [fx, fy, fz] of move.flips) {
-      assert.equal(board.grid[fz][fy][fx], CELL.BLACK,
-        `(${fx},${fy},${fz}) が黒に反転すべき`);
+      assert.equal(board.grid[fz][fy][fx], CELL.BLACK, `(${fx},${fy},${fz}) が黒に反転すべき`);
     }
   });
 

@@ -67,24 +67,29 @@ export class InputHandler {
   }
 
   _bindTouch(el) {
-    el.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        this._dragging = true;
+    el.addEventListener(
+      'touchstart',
+      (e) => {
+        if (e.touches.length === 1) {
+          this._dragging = true;
+          this._lastX = e.touches[0].clientX;
+          this._lastY = e.touches[0].clientY;
+        }
+      },
+      { passive: true },
+    );
+
+    el.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!this._dragging || e.touches.length !== 1) return;
+        e.preventDefault(); // スクロール防止
+        this._applyDelta(e.touches[0].clientX - this._lastX, e.touches[0].clientY - this._lastY);
         this._lastX = e.touches[0].clientX;
         this._lastY = e.touches[0].clientY;
-      }
-    }, { passive: true });
-
-    el.addEventListener('touchmove', (e) => {
-      if (!this._dragging || e.touches.length !== 1) return;
-      e.preventDefault(); // スクロール防止
-      this._applyDelta(
-        e.touches[0].clientX - this._lastX,
-        e.touches[0].clientY - this._lastY
-      );
-      this._lastX = e.touches[0].clientX;
-      this._lastY = e.touches[0].clientY;
-    }, { passive: false });
+      },
+      { passive: false },
+    );
 
     window.addEventListener('touchend', () => {
       this._dragging = false;

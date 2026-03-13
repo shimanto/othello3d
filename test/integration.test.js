@@ -35,7 +35,7 @@ function playFullGame(boardSize) {
   board.setupInitialPieces();
   const cpu = new CpuPlayer();
   let turn = CELL.BLACK;
-  let maxTurns = boardSize * boardSize * 3 + 50;
+  const maxTurns = boardSize * boardSize * 3 + 50;
   let turns = 0;
 
   while (turns < maxTurns) {
@@ -78,10 +78,7 @@ describe('統合: CPU対戦1ターン', () => {
     playOneTurn(board, cpu);
     const after = board.countPieces();
 
-    assert.ok(
-      after.black + after.white > before.black + before.white,
-      '石の総数が増えるべき'
-    );
+    assert.ok(after.black + after.white > before.black + before.white, '石の総数が増えるべき');
   });
 });
 
@@ -117,8 +114,10 @@ describe('統合: 完全試合', () => {
       const { board } = playFullGame(size);
       const { black, white } = board.countPieces();
       const maxCells = size * size * 3; // 3層
-      assert.ok(black + white <= maxCells,
-        `${size}×${size}: 石数 ${black + white} ≤ 最大 ${maxCells}`);
+      assert.ok(
+        black + white <= maxCells,
+        `${size}×${size}: 石数 ${black + white} ≤ 最大 ${maxCells}`,
+      );
     }
   });
 });
@@ -144,8 +143,7 @@ describe('統合: 石数の整合性', () => {
       const { black, white } = board.countPieces();
       const total = black + white;
 
-      assert.equal(total, prevTotal + 1,
-        `ターン${i}: ${prevTotal} → ${total} (差は1であるべき)`);
+      assert.equal(total, prevTotal + 1, `ターン${i}: ${prevTotal} → ${total} (差は1であるべき)`);
       prevTotal = total;
     }
   });

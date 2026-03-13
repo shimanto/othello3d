@@ -24,7 +24,7 @@ export class CpuPlayer {
     let bestScore = -Infinity;
 
     for (const move of moves) {
-      let score = this._evaluateMove(board, move, posWeights);
+      const score = this._evaluateMove(board, move, posWeights);
       if (score > bestScore) {
         bestScore = score;
         best = move;
@@ -64,9 +64,9 @@ export class CpuPlayer {
     const opponentMoves = board.getValidMoves(simGrid, CELL.BLACK);
     if (opponentMoves.length > 0) {
       const opponentBest = Math.max(
-        ...opponentMoves.map(om =>
-          posWeights[om.y][om.x] + (lw[om.z] || 0) + om.flips.length * 2
-        )
+        ...opponentMoves.map(
+          (om) => posWeights[om.y][om.x] + (lw[om.z] || 0) + om.flips.length * 2,
+        ),
       );
       score -= opponentBest * 0.6;
     } else {
@@ -88,13 +88,24 @@ export class CpuPlayer {
         const distY = Math.min(y, sizeY - 1 - y);
         const distX = Math.min(x, sizeX - 1 - x);
 
-        if (distY === 0 && distX === 0)      { weights[y][x] = 120; } // 角
-        else if (distY === 1 && distX === 1)  { weights[y][x] = -60; } // 角の斜め隣（最危険）
-        else if ((distY === 0 && distX === 1) ||
-                 (distY === 1 && distX === 0)){ weights[y][x] = -30; } // 角の直隣
-        else if (distY === 0 || distX === 0)  { weights[y][x] = 15;  } // 辺
-        else if (distY === 1 || distX === 1)  { weights[y][x] = -5;  } // 辺の内側隣
-        else { weights[y][x] = Math.max(0, 3 - Math.abs(distY - distX)); }
+        if (distY === 0 && distX === 0) {
+          weights[y][x] = 120;
+        } // 角
+        else if (distY === 1 && distX === 1) {
+          weights[y][x] = -60;
+        } // 角の斜め隣（最危険）
+        else if ((distY === 0 && distX === 1) || (distY === 1 && distX === 0)) {
+          weights[y][x] = -30;
+        } // 角の直隣
+        else if (distY === 0 || distX === 0) {
+          weights[y][x] = 15;
+        } // 辺
+        else if (distY === 1 || distX === 1) {
+          weights[y][x] = -5;
+        } // 辺の内側隣
+        else {
+          weights[y][x] = Math.max(0, 3 - Math.abs(distY - distX));
+        }
       }
     }
 

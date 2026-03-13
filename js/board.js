@@ -27,9 +27,7 @@ export class Board {
   /** 空の3Dグリッドを生成 */
   _createEmptyGrid() {
     return Array.from({ length: this.sizeZ }, () =>
-      Array.from({ length: this.sizeY }, () =>
-        Array(this.sizeX).fill(CELL.EMPTY)
-      )
+      Array.from({ length: this.sizeY }, () => Array(this.sizeX).fill(CELL.EMPTY)),
     );
   }
 
@@ -40,22 +38,20 @@ export class Board {
 
     // L1: 標準配置
     this.grid[0][cy - 1][cx - 1] = CELL.WHITE;
-    this.grid[0][cy - 1][cx]     = CELL.BLACK;
-    this.grid[0][cy][cx - 1]     = CELL.BLACK;
-    this.grid[0][cy][cx]         = CELL.WHITE;
+    this.grid[0][cy - 1][cx] = CELL.BLACK;
+    this.grid[0][cy][cx - 1] = CELL.BLACK;
+    this.grid[0][cy][cx] = CELL.WHITE;
 
     // L2: L1と互い違い
     this.grid[1][cy - 1][cx - 1] = CELL.BLACK;
-    this.grid[1][cy - 1][cx]     = CELL.WHITE;
-    this.grid[1][cy][cx - 1]     = CELL.WHITE;
-    this.grid[1][cy][cx]         = CELL.BLACK;
+    this.grid[1][cy - 1][cx] = CELL.WHITE;
+    this.grid[1][cy][cx - 1] = CELL.WHITE;
+    this.grid[1][cy][cx] = CELL.BLACK;
   }
 
   /** 座標が盤面内かどうか */
   isInBounds(x, y, z) {
-    return x >= 0 && x < this.sizeX &&
-           y >= 0 && y < this.sizeY &&
-           z >= 0 && z < this.sizeZ;
+    return x >= 0 && x < this.sizeX && y >= 0 && y < this.sizeY && z >= 0 && z < this.sizeZ;
   }
 
   /** (x, y) に石を落としたときの z 座標を返す。満杯なら -1 */
@@ -88,7 +84,9 @@ export class Board {
 
     for (const [dx, dy, dz] of DIRECTIONS_26) {
       const lineFlips = [];
-      let nx = x + dx, ny = y + dy, nz = z + dz;
+      let nx = x + dx,
+        ny = y + dy,
+        nz = z + dz;
 
       // 相手の石が続く限り追跡
       while (this.isInBounds(nx, ny, nz) && grid[nz][ny][nx] === opponent) {
@@ -149,7 +147,8 @@ export class Board {
 
   /** 黒・白の石数をカウント */
   countPieces() {
-    let black = 0, white = 0;
+    let black = 0,
+      white = 0;
     for (let z = 0; z < this.sizeZ; z++)
       for (let y = 0; y < this.sizeY; y++)
         for (let x = 0; x < this.sizeX; x++) {
@@ -170,6 +169,6 @@ export class Board {
 
   /** グリッドのディープコピー */
   static cloneGrid(grid) {
-    return grid.map(layer => layer.map(row => [...row]));
+    return grid.map((layer) => layer.map((row) => [...row]));
   }
 }

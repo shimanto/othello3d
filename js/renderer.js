@@ -22,13 +22,13 @@ export class Renderer {
 
     // DOM要素のキャッシュ
     this.els = {
-      scene:     document.getElementById('scene'),
-      flatView:  document.getElementById('flat-view'),
+      scene: document.getElementById('scene'),
+      flatView: document.getElementById('flat-view'),
       layerTabs: document.getElementById('layer-tabs'),
-      scoreB:    document.getElementById('sc-b'),
-      scoreW:    document.getElementById('sc-w'),
-      info:      document.getElementById('info'),
-      subtitle:  document.getElementById('subtitle'),
+      scoreB: document.getElementById('sc-b'),
+      scoreW: document.getElementById('sc-w'),
+      info: document.getElementById('info'),
+      subtitle: document.getElementById('subtitle'),
     };
   }
 
@@ -75,15 +75,16 @@ export class Renderer {
 
     if (gameOver) {
       const { black: b, white: w } = pieces;
-      if (b > w)      el.textContent = i18n.t('gameOverBlack', b, w);
+      if (b > w) el.textContent = i18n.t('gameOverBlack', b, w);
       else if (w > b) el.textContent = i18n.t('gameOverWhite', b, w);
-      else            el.textContent = i18n.t('gameOverDraw', b, w);
+      else el.textContent = i18n.t('gameOverDraw', b, w);
     } else if (isCpuThinking) {
       el.textContent = i18n.t('cpuThinking');
     } else {
-      el.textContent = turn === CELL.BLACK
-        ? i18n.t('blackTurn', validMoves.length)
-        : i18n.t('whiteTurn', validMoves.length);
+      el.textContent =
+        turn === CELL.BLACK
+          ? i18n.t('blackTurn', validMoves.length)
+          : i18n.t('whiteTurn', validMoves.length);
     }
   }
 
@@ -135,7 +136,7 @@ export class Renderer {
     }
 
     // ヒント表示
-    const move = validMoves.find(m => m.x === x && m.y === y);
+    const move = validMoves.find((m) => m.x === x && m.y === y);
     if (move && move.z === z && !isCpuThinking) {
       cell.classList.add('hint');
     }
@@ -171,12 +172,18 @@ export class Renderer {
     const boardPx = cellPx * board.sizeX;
     const halfPx = boardPx / 2;
     const layerCount = board.sizeZ;
-    const baseOffset = -(layerCount - 1) * RENDER.LAYER_GAP_PX / 2;
+    const baseOffset = (-(layerCount - 1) * RENDER.LAYER_GAP_PX) / 2;
 
     for (let z = 0; z < layerCount; z++) {
       const layer = this._create3DLayer(
-        board, z, viewLayer, validMoves, isCpuThinking,
-        boardPx, halfPx, baseOffset
+        board,
+        z,
+        viewLayer,
+        validMoves,
+        isCpuThinking,
+        boardPx,
+        halfPx,
+        baseOffset,
       );
       scene.appendChild(layer);
     }
@@ -227,7 +234,7 @@ export class Renderer {
       cell.appendChild(disc);
     }
 
-    const move = validMoves.find(m => m.x === x && m.y === y && m.z === z);
+    const move = validMoves.find((m) => m.x === x && m.y === y && m.z === z);
     if (move && !isCpuThinking) {
       cell.classList.add('hint');
     }

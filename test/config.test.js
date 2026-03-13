@@ -39,9 +39,7 @@ describe('Config: DIRECTIONS_26', () => {
   });
 
   it('原点(0,0,0)は含まれない', () => {
-    const hasOrigin = DIRECTIONS_26.some(([dx, dy, dz]) =>
-      dx === 0 && dy === 0 && dz === 0
-    );
+    const hasOrigin = DIRECTIONS_26.some(([dx, dy, dz]) => dx === 0 && dy === 0 && dz === 0);
     assert.equal(hasOrigin, false);
   });
 
@@ -54,15 +52,15 @@ describe('Config: DIRECTIONS_26', () => {
   });
 
   it('重複する方向がない', () => {
-    const keys = DIRECTIONS_26.map(d => d.join(','));
+    const keys = DIRECTIONS_26.map((d) => d.join(','));
     const unique = new Set(keys);
     assert.equal(unique.size, 26);
   });
 });
 
 describe('Config: BOARD_SIZES', () => {
-  it('3つのサイズが定義されている', () => {
-    assert.equal(BOARD_SIZES.length, 3);
+  it('2つのサイズが定義されている', () => {
+    assert.equal(BOARD_SIZES.length, 2);
   });
 
   it('各エントリに size, label, difficulty がある', () => {
@@ -80,7 +78,7 @@ describe('Config: BOARD_SIZES', () => {
   });
 
   it('デフォルトサイズが BOARD_SIZES に含まれる', () => {
-    const found = BOARD_SIZES.some(e => e.size === DEFAULT_BOARD_SIZE);
+    const found = BOARD_SIZES.some((e) => e.size === DEFAULT_BOARD_SIZE);
     assert.ok(found);
   });
 });
@@ -92,8 +90,10 @@ describe('Config: LAYER_WEIGHTS', () => {
 
   it('低い層ほど重みが大きい（降順）', () => {
     for (let i = 0; i < LAYER_WEIGHTS.length - 1; i++) {
-      assert.ok(LAYER_WEIGHTS[i] >= LAYER_WEIGHTS[i + 1],
-        `LAYER_WEIGHTS[${i}]=${LAYER_WEIGHTS[i]} >= LAYER_WEIGHTS[${i + 1}]=${LAYER_WEIGHTS[i + 1]}`);
+      assert.ok(
+        LAYER_WEIGHTS[i] >= LAYER_WEIGHTS[i + 1],
+        `LAYER_WEIGHTS[${i}]=${LAYER_WEIGHTS[i]} >= LAYER_WEIGHTS[${i + 1}]=${LAYER_WEIGHTS[i + 1]}`,
+      );
     }
   });
 });
