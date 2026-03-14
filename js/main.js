@@ -893,36 +893,33 @@ class Game {
 
   _startQueueCountPoll() {
     this._lastQueueCount = 0;
-    this._queueCountTimer = setInterval(() => this._pollQueueCount(), 5000);
+    this._pollQueueCount();
+    this._queueCountTimer = setInterval(
+      () => this._pollQueueCount(),
+      TIMING.QUEUE_COUNT_POLL_MS,
+    );
   }
 
   async _pollQueueCount() {
-    // 自分が待機中やオンラインモード中はメッセージ不要
-    if (this.state.waitingType || this.state.mode === 'online') return;
-    // スタンプチャット表示中はスキップ（バックグラウンドゲーム中にPvP/PvCに切り替えた場合の安全策）
+    const s = this.state;
+    if (s.waitingType || s.mode === 'online') return;
     const buttons = document.getElementById('stamp-buttons');
     if (buttons && buttons.style.display !== 'none') return;
 
     try {
       const res = await fetch('/api/queue?count=1');
-      if (!res.ok) {
-        console.warn('Queue count API returned', res.status);
-        return;
-      }
+      if (!res.ok) return;
       const data = await res.json();
       const count = data.count || 0;
-      console.log('Queue count:', count);
 
       if (count > 0) {
-        if (count !== this._lastQueueCount || Math.random() < 0.3) {
-          this._showChallengerMessage(count);
-        }
+        this._showChallengerMessage(count);
       } else if (this._lastQueueCount > 0) {
         this._hideChallengerMessage();
       }
       this._lastQueueCount = count;
-    } catch (e) {
-      console.warn('Queue count poll failed:', e.message);
+    } catch {
+      // ネットワークエラーは無視
     }
   }
 
@@ -931,8 +928,11 @@ class Game {
     const chat = document.getElementById('stamp-chat');
     if (!ad) return;
 
-    const msg = CHALLENGER_MESSAGES[Math.floor(Math.random() * CHALLENGER_MESSAGES.length)];
-    let html = `<div class="challenger-msg">${msg}</div>`;
+    // 1セッション1メッセージ固定
+    if (!this._challengerMsg) {
+      this._challengerMsg = CHALLENGER_MESSAGES[Math.floor(Math.random() * CHALLENGER_MESSAGES.length)];
+    }
+    let html = `<div class="challenger-msg">${this._challengerMsg}</div>`;
     if (count > 1) {
       html += `<div class="challenger-count">${count}人が待機中</div>`;
     }
@@ -940,7 +940,8 @@ class Game {
     ad.style.display = 'block';
     ad.innerHTML = html;
 
-    if (chat) {
+    // 初回表示時のみアニメーション
+    if (this._lastQueueCount === 0 && chat) {
       chat.classList.remove('challenger-alert');
       void chat.offsetWidth;
       chat.classList.add('challenger-alert');
