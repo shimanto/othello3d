@@ -904,8 +904,13 @@ class Game {
 
     try {
       const res = await fetch('/api/queue?count=1');
+      if (!res.ok) {
+        console.warn('Queue count API returned', res.status);
+        return;
+      }
       const data = await res.json();
       const count = data.count || 0;
+      console.log('Queue count:', count);
 
       if (count > 0) {
         if (count !== this._lastQueueCount || Math.random() < 0.3) {
@@ -915,8 +920,8 @@ class Game {
         this._hideChallengerMessage();
       }
       this._lastQueueCount = count;
-    } catch {
-      // ignore
+    } catch (e) {
+      console.warn('Queue count poll failed:', e.message);
     }
   }
 
