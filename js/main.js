@@ -194,6 +194,7 @@ class Game {
       this._saveOnlineGame();
     }
     this._hideOnlineUI();
+    this._hideStampChat();
     this.init();
   }
 
@@ -896,9 +897,9 @@ class Game {
   }
 
   async _pollQueueCount() {
-    // 自分が待機中やオンライン対戦中はメッセージ不要
-    if (this.state.waitingType || this.state.onlineRoomId) return;
-    // スタンプチャット表示中はスキップ
+    // 自分が待機中やオンラインモード中はメッセージ不要
+    if (this.state.waitingType || this.state.mode === 'online') return;
+    // スタンプチャット表示中はスキップ（バックグラウンドゲーム中にPvP/PvCに切り替えた場合の安全策）
     const buttons = document.getElementById('stamp-buttons');
     if (buttons && buttons.style.display !== 'none') return;
 
