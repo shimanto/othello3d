@@ -79,6 +79,15 @@ export async function onRequestPut(context) {
     }
   }
 
+  if (action === 'stamp') {
+    if (!playerId || !body.stamp) {
+      return jsonResponse({ error: 'Missing playerId or stamp' }, 400);
+    }
+    room.lastStamp = { from: playerId, stamp: body.stamp, ts: Date.now() };
+    await KV.put(`room:${roomId}`, JSON.stringify(room));
+    return jsonResponse({ status: 'ok' });
+  }
+
   if (action === 'move') {
     if (!playerId) {
       return jsonResponse({ error: 'Missing playerId' }, 400);

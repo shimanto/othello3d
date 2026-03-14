@@ -42,6 +42,9 @@ class GameState {
     this.waitingPollTimer = null;
     this.waitingBoardSize = null;
     this.waitingLayerCount = null;
+
+    // スタンプ
+    this.lastStampTs = 0;
   }
 
   get isCpuThinking() {
@@ -96,6 +99,9 @@ class Game {
 
   init() {
     const s = this.state;
+    // オンライン対戦中はinit()でゲームをリセットしない
+    if (s.roomId && !s.gameOver) return;
+
     // ゲーム中ポーリングのみ停止（待機ポーリングは維持）
     this._stopGamePoll();
     this.effects.closeOverlay();
@@ -104,6 +110,12 @@ class Game {
     // オンラインパネルは待機中でなければ非表示
     if (!s.waitingType) {
       this._hideOnlineUI();
+    }
+
+    // オンラインゲーム終了時のクリーンアップ
+    if (s.roomId) {
+      this._setOnlinePlaying(false);
+      this._hideStampChat();
     }
 
     setLayerCount(s.layerCount);
@@ -115,6 +127,7 @@ class Game {
     s.roomId = null;
     s.myColor = null;
     s.queueId = null;
+    s.lastStampTs = 0;
 
     this.renderer.updateSubtitle(
       s.boardSize,
@@ -127,10 +140,27 @@ class Game {
 
   setMode(mode) {
     const s = this.state;
+    const hasActiveOnlineGame = s.roomId && !s.gameOver;
+
+    // オンラインゲーム中はどのタブに切り替えてもオンライン対戦を継続
+    if (hasActiveOnlineGame) {
+      if (mode === 'online') {
+        // onlineタブに戻った場合はパネル非表示でボード表示
+        s.mode = 'online';
+        this._hideOnlineUI();
+      }
+      // PvP/PvCに切り替えてもmodeはonlineのまま維持
+      // UIのボタンだけ切り替わるが実際のゲームはオンライン継続
+      document.getElementById('btnPvP').classList.remove('active');
+      document.getElementById('btnPvC').classList.remove('active');
+      document.getElementById('btnOnline').classList.add('active');
+      this._render();
+      return;
+    }
+
     s.mode = mode;
     document.getElementById('btnPvP').classList.toggle('active', mode === 'pvp');
     document.getElementById('btnPvC').classList.toggle('active', mode === 'pvc');
-    // onlineボタンは待機中ならactiveのままにする場合もあるが、モード切替時はmodeに従う
     document
       .getElementById('btnOnline')
       .classList.toggle('active', mode === 'online' || !!s.waitingType);
@@ -182,9 +212,12 @@ class Game {
     document.getElementById('btnPvP').innerHTML = i18n.t('pvp');
     document.getElementById('btnPvC').innerHTML = i18n.t('pvc');
     document.getElementById('btnOnline').innerHTML = i18n.t('online');
-    // 待機中ならオレンジ点滅を再適用（innerHTMLでクラスがリセットされるため）
+    // 待機中/対戦中ならクラスを再適用（innerHTMLでクラスがリセットされるため）
     if (this.state.waitingType) {
       this._setOnlineWaiting(true);
+    }
+    if (this.state.roomId && !this.state.gameOver) {
+      this._setOnlinePlaying(true);
     }
     document.getElementById('btnReset').textContent = i18n.t('reset');
     document.getElementById('go-restart').textContent = i18n.t('playAgain');
@@ -506,6 +539,8 @@ class Game {
     document.getElementById('btnPvC').classList.remove('active');
     document.getElementById('btnOnline').classList.add('active');
     document.getElementById('btnOnline').classList.remove('online-waiting');
+    this._setOnlinePlaying(true);
+    this._showStampChat();
     document.getElementById('btnS6').classList.toggle('active', bs === 6);
     document.getElementById('btnS8').classList.toggle('active', bs === 8);
     document.getElementById('btnL3').classList.toggle('active', lc === 3);
@@ -523,10 +558,8 @@ class Game {
     this.renderer.updateFlatViewSize(bs);
     this._render();
 
-    // 相手の手番を待つポーリング開始
-    if (!s.isMyTurn) {
-      this._startGamePoll();
-    }
+    // ゲーム中ポーリング開始（手番・スタンプの受信）
+    this._startGamePoll();
   }
 
   // ─── 待機ポーリング（マッチング/部屋待ち。モード切替で維持） ───
@@ -580,6 +613,7 @@ class Game {
         const res = await fetch(`/api/room/${s.roomId}?playerId=${s.playerId}`);
         const data = await res.json();
 
+        this._checkStamp(data);
         if (data.board && data.lastMove) {
           const myTurnCell = s.myColor === 'black' ? CELL.BLACK : CELL.WHITE;
           if (data.turn === myTurnCell || data.gameOver) {
@@ -590,9 +624,9 @@ class Game {
 
             if (s.gameOver) {
               this._stopGamePoll();
+              this._setOnlinePlaying(false);
+              this._hideStampChat();
               setTimeout(() => this._onGameOver(), TIMING.GAMEOVER_DELAY_MS);
-            } else if (s.isMyTurn) {
-              this._stopGamePoll();
             }
           }
         }
@@ -628,8 +662,10 @@ class Game {
         }),
       });
 
-      if (!s.gameOver) {
-        this._startGamePoll();
+      if (s.gameOver) {
+        this._stopGamePoll();
+        this._setOnlinePlaying(false);
+        this._hideStampChat();
       }
     } catch (e) {
       console.error('Send move error:', e);
@@ -681,6 +717,58 @@ class Game {
     if (btn) btn.classList.toggle('online-waiting', waiting);
   }
 
+  _setOnlinePlaying(playing) {
+    const btn = document.getElementById('btnOnline');
+    if (btn) btn.classList.toggle('online-playing', playing);
+  }
+
+  _showStampChat() {
+    const el = document.getElementById('stamp-chat');
+    if (el) el.style.display = 'flex';
+  }
+
+  _hideStampChat() {
+    const el = document.getElementById('stamp-chat');
+    if (el) el.style.display = 'none';
+  }
+
+  async sendStamp(stamp) {
+    const s = this.state;
+    if (!s.roomId) return;
+    this._displayStamp(stamp, true);
+    try {
+      await fetch(`/api/room/${s.roomId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stamp', playerId: s.playerId, stamp }),
+      });
+    } catch (e) {
+      console.error('Stamp error:', e);
+    }
+  }
+
+  _displayStamp(stamp, isMine) {
+    const display = document.getElementById('stamp-display');
+    if (!display) return;
+    display.innerHTML = '';
+    const span = document.createElement('span');
+    span.className = 'stamp-msg';
+    span.textContent = stamp;
+    span.style.color = isMine ? '#8cf' : '#f0a030';
+    display.appendChild(span);
+    setTimeout(() => {
+      if (display.contains(span)) display.removeChild(span);
+    }, 2500);
+  }
+
+  _checkStamp(data) {
+    const s = this.state;
+    if (data.lastStamp && data.lastStamp.from !== s.playerId && data.lastStamp.ts > s.lastStampTs) {
+      s.lastStampTs = data.lastStamp.ts;
+      this._displayStamp(data.lastStamp.stamp, false);
+    }
+  }
+
   _bindButtons() {
     window.gameSetMode = (m) => this.setMode(m);
     window.gameSetSize = (n) => this.setSize(n);
@@ -695,6 +783,7 @@ class Game {
     window.gameCancelQueue = () => this.cancelQueue();
     window.gameCreateRoom = () => this.createRoom();
     window.gameJoinRoom = () => this.joinRoom();
+    window.gameSendStamp = (stamp) => this.sendStamp(stamp);
   }
 
   _bindResize() {

@@ -31,10 +31,21 @@
   </div>
 
   <!-- モード選択 -->
-  <div class="btn-group" id="mode-btns">
-    <button id="btnPvP" class="active" onclick="gameSetMode('pvp')">Player vs Player</button>
-    <button id="btnPvC" onclick="gameSetMode('pvc')">Player vs CPU</button>
-    <button id="btnOnline" onclick="gameSetMode('online')">Online Match</button>
+  <div class="mode-row">
+    <div class="btn-group" id="mode-btns">
+      <button id="btnPvP" class="active" onclick="gameSetMode('pvp')">Player vs Player</button>
+      <button id="btnPvC" onclick="gameSetMode('pvc')">Player vs CPU</button>
+      <button id="btnOnline" onclick="gameSetMode('online')">Online Match</button>
+    </div>
+    <div id="stamp-chat" class="stamp-chat" style="display:none;">
+      <div id="stamp-display" class="stamp-display"></div>
+      <div class="stamp-buttons">
+        <button class="stamp-btn" onclick="gameSendStamp('👍')">👍</button>
+        <button class="stamp-btn" onclick="gameSendStamp('😄')">😄</button>
+        <button class="stamp-btn" onclick="gameSendStamp('🔥')">🔥</button>
+        <button class="stamp-btn" onclick="gameSendStamp('👏')">👏</button>
+      </div>
+    </div>
   </div>
 
   <!-- オンライン対戦パネル -->
