@@ -896,13 +896,19 @@ class Game {
   }
 
   async _pollQueueCount() {
-    // 自分が待機中やオンライン対戦中はメッセージ不要
-    if (this.state.waitingType || this.state.onlineRoomId) return;
+    // 自分が待機中なら不要
+    if (this.state.waitingType) return;
     try {
       const res = await fetch('/api/queue?count=1');
       const data = await res.json();
-      if (data.count > 0 && data.count !== this._lastQueueCount) {
-        this._showChallengerMessage();
+      if (data.count > 0) {
+        // 新しい挑戦者が来た、または定期的にメッセージ更新
+        if (data.count !== this._lastQueueCount || Math.random() < 0.3) {
+          this._showChallengerMessage(data.count);
+        }
+      } else if (this._lastQueueCount > 0) {
+        // 待機者がいなくなった→通常表示に戻す
+        this._hideChallengerMessage();
       }
       this._lastQueueCount = data.count;
     } catch {
@@ -910,16 +916,33 @@ class Game {
     }
   }
 
-  _showChallengerMessage() {
+  _showChallengerMessage(count) {
     const ad = document.getElementById('stamp-ad');
+    const chat = document.getElementById('stamp-chat');
     if (!ad) return;
-    // スタンプチャットが表示中（対戦中）なら表示しない
-    const buttons = document.getElementById('stamp-buttons');
-    if (buttons && buttons.style.display !== 'none') return;
 
     const msg = CHALLENGER_MESSAGES[Math.floor(Math.random() * CHALLENGER_MESSAGES.length)];
+    const countText = count > 1 ? `<div class="challenger-count">${count}人が待機中</div>` : '';
     ad.style.display = 'block';
-    ad.innerHTML = `<div class="challenger-msg">${msg}</div><button class="quick-match-btn" onclick="gameQuickMatch()">⚔️ 対戦する</button>`;
+    ad.innerHTML = `<div class="challenger-msg">${msg}</div>${countText}<button class="quick-match-btn" onclick="gameQuickMatch()">⚔️ 対戦する</button>`;
+
+    // チャットエリアを目立たせる
+    if (chat) {
+      chat.classList.remove('challenger-alert');
+      void chat.offsetWidth;
+      chat.classList.add('challenger-alert');
+    }
+  }
+
+  _hideChallengerMessage() {
+    const ad = document.getElementById('stamp-ad');
+    const chat = document.getElementById('stamp-chat');
+    if (ad) {
+      ad.innerHTML = '3D Othello';
+    }
+    if (chat) {
+      chat.classList.remove('challenger-alert');
+    }
   }
 
   async quickMatch() {
