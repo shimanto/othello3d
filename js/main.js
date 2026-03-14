@@ -892,56 +892,59 @@ class Game {
 
   _startQueueCountPoll() {
     this._lastQueueCount = 0;
-    this._queueCountTimer = setInterval(() => this._pollQueueCount(), 5000);
+    this._challengerMsgIndex = 0;
+    // 初回は少し待ってから表示
+    setTimeout(() => this._showChallengerMessage(0), 3000);
+    this._queueCountTimer = setInterval(() => this._pollQueueCount(), 8000);
   }
 
   async _pollQueueCount() {
-    // 自分が待機中なら不要
-    if (this.state.waitingType) return;
+    // 自分が待機中やオンライン対戦中はメッセージ不要
+    if (this.state.waitingType || this.state.onlineRoomId) return;
+    // スタンプ送受信中（対戦中のスタンプチャット表示中）はスキップ
+    const buttons = document.getElementById('stamp-buttons');
+    if (buttons && buttons.style.display !== 'none') return;
+
+    let count = 0;
     try {
       const res = await fetch('/api/queue?count=1');
       const data = await res.json();
-      if (data.count > 0) {
-        // 新しい挑戦者が来た、または定期的にメッセージ更新
-        if (data.count !== this._lastQueueCount || Math.random() < 0.3) {
-          this._showChallengerMessage(data.count);
-        }
-      } else if (this._lastQueueCount > 0) {
-        // 待機者がいなくなった→通常表示に戻す
-        this._hideChallengerMessage();
-      }
-      this._lastQueueCount = data.count;
+      count = data.count || 0;
     } catch {
-      // ignore
+      // API未接続（ローカル等）でもメッセージは表示する
     }
+
+    if (count > 0 && count !== this._lastQueueCount) {
+      // 実際に待機者がいる→強調表示
+      this._showChallengerMessage(count, true);
+    } else {
+      // 待機者なしでも定期的にランダムメッセージで盛り上げ
+      this._showChallengerMessage(count, false);
+    }
+    this._lastQueueCount = count;
   }
 
-  _showChallengerMessage(count) {
+  _showChallengerMessage(count, highlight) {
     const ad = document.getElementById('stamp-ad');
     const chat = document.getElementById('stamp-chat');
     if (!ad) return;
 
     const msg = CHALLENGER_MESSAGES[Math.floor(Math.random() * CHALLENGER_MESSAGES.length)];
-    const countText = count > 1 ? `<div class="challenger-count">${count}人が待機中</div>` : '';
+    let html = `<div class="challenger-msg">${msg}</div>`;
+    if (count > 1) {
+      html += `<div class="challenger-count">${count}人が待機中</div>`;
+    } else if (count === 1) {
+      html += `<div class="challenger-count">1人が待機中</div>`;
+    }
+    html += `<button class="quick-match-btn" onclick="gameQuickMatch()">⚔️ 対戦する</button>`;
     ad.style.display = 'block';
-    ad.innerHTML = `<div class="challenger-msg">${msg}</div>${countText}<button class="quick-match-btn" onclick="gameQuickMatch()">⚔️ 対戦する</button>`;
+    ad.innerHTML = html;
 
-    // チャットエリアを目立たせる
-    if (chat) {
+    // 実際の待機者がいる場合はチャットエリアを目立たせる
+    if (highlight && chat) {
       chat.classList.remove('challenger-alert');
       void chat.offsetWidth;
       chat.classList.add('challenger-alert');
-    }
-  }
-
-  _hideChallengerMessage() {
-    const ad = document.getElementById('stamp-ad');
-    const chat = document.getElementById('stamp-chat');
-    if (ad) {
-      ad.innerHTML = '3D Othello';
-    }
-    if (chat) {
-      chat.classList.remove('challenger-alert');
     }
   }
 
