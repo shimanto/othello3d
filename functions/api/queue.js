@@ -83,6 +83,12 @@ export async function onRequestGet(context) {
   const queueId = url.searchParams.get('queueId');
   const playerId = url.searchParams.get('playerId');
 
+  // Queue count mode - return number of waiting players
+  if (url.searchParams.get('count') === '1') {
+    const list = await KV.list({ prefix: 'queue:' });
+    return jsonResponse({ count: list.keys.length });
+  }
+
   if (!queueId || !playerId) {
     return jsonResponse({ error: 'Missing queueId or playerId' }, 400);
   }

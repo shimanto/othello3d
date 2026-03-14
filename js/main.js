@@ -79,6 +79,33 @@ class GameState {
 }
 
 // ═══════════════════════════════════════
+//  チャレンジャーメッセージ
+// ═══════════════════════════════════════
+
+const CHALLENGER_MESSAGES = [
+  '挑戦者現る！',
+  '新たな刺客が…！',
+  '強者の気配がする…',
+  '宿敵、降臨。',
+  '逃げるなら今のうち！',
+  '嵐の予感…！',
+  '猛者が待ち構えている！',
+  '運命の対局、始まる。',
+  '次の相手はお前だ！',
+  'オセロの神が降臨！',
+  '戦いの鐘が鳴る…',
+  '勝負師が参上！',
+  '伝説の一局が始まる！',
+  '最強を決めよう！',
+  '盤上の王者は誰だ？',
+  '腕に覚えはあるか？',
+  '白黒つけようぜ！',
+  '決戦の刻…！',
+  '手加減なしで行くぞ！',
+  '全力でかかってこい！',
+];
+
+// ═══════════════════════════════════════
 //  ゲームコントローラー
 // ═══════════════════════════════════════
 
@@ -102,6 +129,7 @@ class Game {
     this._applyLang();
     this.init();
     this._checkDirectLink();
+    this._startQueueCountPoll();
   }
 
   // ───────────────────────────────────
@@ -858,6 +886,53 @@ class Game {
     setTimeout(() => btn.classList.remove('stamp-notify'), 2000);
   }
 
+  // ───────────────────────────────────
+  //  キュー監視＆チャレンジャーメッセージ
+  // ───────────────────────────────────
+
+  _startQueueCountPoll() {
+    this._lastQueueCount = 0;
+    this._queueCountTimer = setInterval(() => this._pollQueueCount(), 5000);
+  }
+
+  async _pollQueueCount() {
+    // 自分が待機中やオンライン対戦中はメッセージ不要
+    if (this.state.waitingType || this.state.onlineRoomId) return;
+    try {
+      const res = await fetch('/api/queue?count=1');
+      const data = await res.json();
+      if (data.count > 0 && data.count !== this._lastQueueCount) {
+        this._showChallengerMessage();
+      }
+      this._lastQueueCount = data.count;
+    } catch {
+      // ignore
+    }
+  }
+
+  _showChallengerMessage() {
+    const ad = document.getElementById('stamp-ad');
+    if (!ad) return;
+    // スタンプチャットが表示中（対戦中）なら表示しない
+    const buttons = document.getElementById('stamp-buttons');
+    if (buttons && buttons.style.display !== 'none') return;
+
+    const msg = CHALLENGER_MESSAGES[Math.floor(Math.random() * CHALLENGER_MESSAGES.length)];
+    ad.style.display = 'block';
+    ad.innerHTML = `<div class="challenger-msg">${msg}</div><button class="quick-match-btn" onclick="gameQuickMatch()">⚔️ 対戦する</button>`;
+  }
+
+  async quickMatch() {
+    const s = this.state;
+    // オンラインモードに切り替えてマッチング開始
+    s.mode = 'online';
+    document.getElementById('btnPvP').classList.remove('active');
+    document.getElementById('btnPvC').classList.remove('active');
+    document.getElementById('btnOnline').classList.add('active');
+    this._showOnlineUI();
+    this.joinQueue();
+  }
+
   _bindButtons() {
     window.gameSetMode = (m) => this.setMode(m);
     window.gameSetSize = (n) => this.setSize(n);
@@ -873,6 +948,7 @@ class Game {
     window.gameCreateRoom = () => this.createRoom();
     window.gameJoinRoom = () => this.joinRoom();
     window.gameSendStamp = (stamp) => this.sendStamp(stamp);
+    window.gameQuickMatch = () => this.quickMatch();
   }
 
   _bindResize() {
