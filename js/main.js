@@ -28,12 +28,22 @@ class GameState {
     this.viewLayer = 0;
     this.board = null;
 
-    // オンライン対戦用（アクティブゲーム）
+    // オンライン対戦用（アクティブゲーム - フォアグラウンド時）
     this.playerId = this._getOrCreatePlayerId();
     this.roomId = null;
     this.myColor = null; // 'black' | 'white'
     this.onlinePollTimer = null; // ゲーム中のポーリング
     this.queueId = null;
+
+    // オンライン対戦バックグラウンド状態
+    this.onlineRoomId = null;
+    this.onlineMyColor = null;
+    this.onlineBoard = null;
+    this.onlineTurn = null;
+    this.onlineGameOver = false;
+    this.onlineBoardSize = null;
+    this.onlineLayerCount = null;
+    this.onlineViewLayer = 0;
 
     // 待機状態（モード切替でも保持）
     this.waitingType = null; // 'queue' | 'room' | null
@@ -53,6 +63,7 @@ class GameState {
 
   get isMyTurn() {
     if (this.mode !== 'online') return true;
+    if (!this.roomId) return true;
     const myCell = this.myColor === 'black' ? CELL.BLACK : CELL.WHITE;
     return this.turn === myCell;
   }
@@ -99,11 +110,7 @@ class Game {
 
   init() {
     const s = this.state;
-    // オンライン対戦中はinit()でゲームをリセットしない
-    if (s.roomId && !s.gameOver) return;
 
-    // ゲーム中ポーリングのみ停止（待機ポーリングは維持）
-    this._stopGamePoll();
     this.effects.closeOverlay();
     this.renderer.setBoardFlash(false);
 
@@ -112,22 +119,12 @@ class Game {
       this._hideOnlineUI();
     }
 
-    // オンラインゲーム終了時のクリーンアップ
-    if (s.roomId) {
-      this._setOnlinePlaying(false);
-      this._hideStampChat();
-    }
-
     setLayerCount(s.layerCount);
     s.board = new Board(s.boardSize, s.boardSize);
     s.board.setupInitialPieces();
     s.turn = CELL.BLACK;
     s.gameOver = false;
     s.viewLayer = 0;
-    s.roomId = null;
-    s.myColor = null;
-    s.queueId = null;
-    s.lastStampTs = 0;
 
     this.renderer.updateSubtitle(
       s.boardSize,
@@ -140,32 +137,21 @@ class Game {
 
   setMode(mode) {
     const s = this.state;
-    const hasActiveOnlineGame = s.roomId && !s.gameOver;
-
-    // オンラインゲーム中はどのタブに切り替えてもオンライン対戦を継続
-    if (hasActiveOnlineGame) {
-      if (mode === 'online') {
-        // onlineタブに戻った場合はパネル非表示でボード表示
-        s.mode = 'online';
-        this._hideOnlineUI();
-      }
-      // PvP/PvCに切り替えてもmodeはonlineのまま維持
-      // UIのボタンだけ切り替わるが実際のゲームはオンライン継続
-      document.getElementById('btnPvP').classList.remove('active');
-      document.getElementById('btnPvC').classList.remove('active');
-      document.getElementById('btnOnline').classList.add('active');
-      this._render();
-      return;
-    }
+    const hasActiveOnlineGame = s.onlineRoomId && !s.onlineGameOver;
 
     s.mode = mode;
     document.getElementById('btnPvP').classList.toggle('active', mode === 'pvp');
     document.getElementById('btnPvC').classList.toggle('active', mode === 'pvc');
     document
       .getElementById('btnOnline')
-      .classList.toggle('active', mode === 'online' || !!s.waitingType);
+      .classList.toggle('active', mode === 'online' || !!s.waitingType || hasActiveOnlineGame);
 
     if (mode === 'online') {
+      if (hasActiveOnlineGame) {
+        // バックグラウンドのオンラインゲームをフォアグラウンドに復元
+        this._restoreOnlineGame();
+        return;
+      }
       // 待機中ならパネルにwaitingを表示、そうでなければactionsを表示
       this._showOnlineUI();
       if (s.waitingType) {
@@ -174,6 +160,12 @@ class Game {
       }
       return;
     }
+
+    // PvP/PvCに切替：オンラインゲーム中ならボード状態を退避
+    if (hasActiveOnlineGame && s.roomId) {
+      this._saveOnlineGame();
+    }
+    this._hideOnlineUI();
     this.init();
   }
 
@@ -216,7 +208,7 @@ class Game {
     if (this.state.waitingType) {
       this._setOnlineWaiting(true);
     }
-    if (this.state.roomId && !this.state.gameOver) {
+    if (this.state.onlineRoomId && !this.state.onlineGameOver) {
       this._setOnlinePlaying(true);
     }
     document.getElementById('btnReset').textContent = i18n.t('reset');
@@ -373,6 +365,46 @@ class Game {
     }
   }
 
+  _saveOnlineGame() {
+    const s = this.state;
+    s.onlineBoard = s.board;
+    s.onlineTurn = s.turn;
+    s.onlineGameOver = s.gameOver;
+    s.onlineViewLayer = s.viewLayer;
+    // roomId, myColor, onlineRoomId はそのまま保持
+  }
+
+  _restoreOnlineGame() {
+    const s = this.state;
+    this._hideOnlineUI();
+    this.effects.closeOverlay();
+    this.renderer.setBoardFlash(false);
+
+    s.mode = 'online';
+    s.roomId = s.onlineRoomId;
+    s.myColor = s.onlineMyColor;
+    s.board = s.onlineBoard;
+    s.turn = s.onlineTurn;
+    s.gameOver = s.onlineGameOver;
+    s.viewLayer = s.onlineViewLayer;
+    s.boardSize = s.onlineBoardSize;
+    s.layerCount = s.onlineLayerCount;
+
+    setLayerCount(s.layerCount);
+    document.getElementById('btnS6').classList.toggle('active', s.boardSize === 6);
+    document.getElementById('btnS8').classList.toggle('active', s.boardSize === 8);
+    document.getElementById('btnL3').classList.toggle('active', s.layerCount === 3);
+    document.getElementById('btnL5').classList.toggle('active', s.layerCount === 5);
+    this.renderer.updateSubtitle(
+      s.boardSize,
+      s.layerCount,
+      i18n.t('subtitle', s.boardSize, s.layerCount),
+    );
+    this.renderer.updateFlatViewSize(s.boardSize);
+    this._showStampChat();
+    this._render();
+  }
+
   async joinQueue() {
     const s = this.state;
     document.getElementById('online-waiting').style.display = 'flex';
@@ -527,6 +559,12 @@ class Game {
     s.myColor = color;
     s.mode = 'online';
 
+    // バックグラウンド状態にも保存
+    s.onlineRoomId = roomId;
+    s.onlineMyColor = color;
+    s.onlineBoardSize = bs;
+    s.onlineLayerCount = lc;
+
     // UI更新
     document.getElementById('online-panel').style.display = 'none';
     document.getElementById('online-waiting').style.display = 'none';
@@ -553,6 +591,12 @@ class Game {
     s.turn = CELL.BLACK;
     s.gameOver = false;
     s.viewLayer = 0;
+
+    // バックグラウンド状態にも保存
+    s.onlineBoard = s.board;
+    s.onlineTurn = s.turn;
+    s.onlineGameOver = false;
+    s.onlineViewLayer = 0;
 
     this.renderer.updateSubtitle(bs, lc, i18n.t('subtitle', bs, lc));
     this.renderer.updateFlatViewSize(bs);
@@ -610,23 +654,38 @@ class Game {
     const s = this.state;
     s.onlinePollTimer = setInterval(async () => {
       try {
-        const res = await fetch(`/api/room/${s.roomId}?playerId=${s.playerId}`);
+        const roomId = s.onlineRoomId;
+        const myColor = s.onlineMyColor;
+        if (!roomId) return;
+
+        const res = await fetch(`/api/room/${roomId}?playerId=${s.playerId}`);
         const data = await res.json();
 
         this._checkStamp(data);
         if (data.board && data.lastMove) {
-          const myTurnCell = s.myColor === 'black' ? CELL.BLACK : CELL.WHITE;
+          const myTurnCell = myColor === 'black' ? CELL.BLACK : CELL.WHITE;
           if (data.turn === myTurnCell || data.gameOver) {
-            s.board.grid = data.board;
-            s.turn = data.turn;
-            s.gameOver = data.gameOver;
-            this._render();
+            // バックグラウンド状態を更新
+            s.onlineBoard.grid = data.board;
+            s.onlineTurn = data.turn;
+            s.onlineGameOver = data.gameOver;
 
-            if (s.gameOver) {
+            // フォアグラウンドがオンラインモードなら描画も更新
+            if (s.mode === 'online' && s.roomId === roomId) {
+              s.board.grid = data.board;
+              s.turn = data.turn;
+              s.gameOver = data.gameOver;
+              this._render();
+            }
+
+            if (data.gameOver) {
               this._stopGamePoll();
               this._setOnlinePlaying(false);
               this._hideStampChat();
-              setTimeout(() => this._onGameOver(), TIMING.GAMEOVER_DELAY_MS);
+              s.onlineRoomId = null;
+              if (s.mode === 'online' && s.roomId === roomId) {
+                setTimeout(() => this._onGameOver(), TIMING.GAMEOVER_DELAY_MS);
+              }
             }
           }
         }
@@ -648,6 +707,11 @@ class Game {
     const s = this.state;
     if (!s.roomId) return;
 
+    // バックグラウンド状態も同期
+    s.onlineTurn = s.turn;
+    s.onlineGameOver = s.gameOver;
+    s.onlineViewLayer = s.viewLayer;
+
     try {
       await fetch(`/api/room/${s.roomId}`, {
         method: 'PUT',
@@ -666,6 +730,7 @@ class Game {
         this._stopGamePoll();
         this._setOnlinePlaying(false);
         this._hideStampChat();
+        s.onlineRoomId = null;
       }
     } catch (e) {
       console.error('Send move error:', e);
@@ -723,21 +788,30 @@ class Game {
   }
 
   _showStampChat() {
-    const el = document.getElementById('stamp-chat');
-    if (el) el.style.display = 'flex';
+    const ad = document.getElementById('stamp-ad');
+    const display = document.getElementById('stamp-display');
+    const buttons = document.getElementById('stamp-buttons');
+    if (ad) ad.style.display = 'none';
+    if (display) display.style.display = 'flex';
+    if (buttons) buttons.style.display = 'flex';
   }
 
   _hideStampChat() {
-    const el = document.getElementById('stamp-chat');
-    if (el) el.style.display = 'none';
+    const ad = document.getElementById('stamp-ad');
+    const display = document.getElementById('stamp-display');
+    const buttons = document.getElementById('stamp-buttons');
+    if (ad) ad.style.display = 'block';
+    if (display) display.style.display = 'none';
+    if (buttons) buttons.style.display = 'none';
   }
 
   async sendStamp(stamp) {
     const s = this.state;
-    if (!s.roomId) return;
+    const roomId = s.onlineRoomId || s.roomId;
+    if (!roomId) return;
     this._displayStamp(stamp, true);
     try {
-      await fetch(`/api/room/${s.roomId}`, {
+      await fetch(`/api/room/${roomId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'stamp', playerId: s.playerId, stamp }),
@@ -766,7 +840,22 @@ class Game {
     if (data.lastStamp && data.lastStamp.from !== s.playerId && data.lastStamp.ts > s.lastStampTs) {
       s.lastStampTs = data.lastStamp.ts;
       this._displayStamp(data.lastStamp.stamp, false);
+
+      // 他タブ表示中なら赤白点滅で通知
+      if (s.mode !== 'online') {
+        this._flashStampNotify();
+      }
     }
+  }
+
+  _flashStampNotify() {
+    const btn = document.getElementById('btnOnline');
+    if (!btn) return;
+    btn.classList.remove('stamp-notify');
+    // reflow to restart animation
+    void btn.offsetWidth;
+    btn.classList.add('stamp-notify');
+    setTimeout(() => btn.classList.remove('stamp-notify'), 2000);
   }
 
   _bindButtons() {

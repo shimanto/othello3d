@@ -1,119 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Othello</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Othello</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="top-bar">
+      <a href="/circle/" id="torusLink" class="nav-link">Torus Othello</a>
+      <select id="langSelect" class="lang-select" onchange="gameChangeLang(this.value)"></select>
+    </div>
 
-  <div class="top-bar">
-    <a href="/circle/" id="torusLink" class="nav-link">Torus Othello</a>
-    <select id="langSelect" class="lang-select" onchange="gameChangeLang(this.value)"></select>
-  </div>
+    <h1 id="title">3D Othello</h1>
+    <div class="subtitle" id="subtitle">8x8 3 layers</div>
 
-  <h1 id="title">3D Othello</h1>
-  <div class="subtitle" id="subtitle">8x8 3 layers</div>
+    <!-- 設定行＋スタンプ/広告エリア -->
+    <div class="settings-row">
+      <div class="settings-left">
+        <div class="btn-group-label" id="boardSizeLabel">Board Size</div>
+        <div class="btn-group" id="size-btns">
+          <button onclick="gameSetSize(6)" id="btnS6">6×6</button>
+          <button onclick="gameSetSize(8)" id="btnS8" class="active">8×8</button>
+        </div>
+        <div class="btn-group-label" id="layerLabel">Layers</div>
+        <div class="btn-group" id="layer-btns">
+          <button onclick="gameSetLayers(3)" id="btnL3" class="active">3</button>
+          <button onclick="gameSetLayers(5)" id="btnL5">5</button>
+        </div>
+      </div>
+      <div id="stamp-chat" class="stamp-chat">
+        <div id="stamp-ad" class="stamp-ad">3D Othello</div>
+        <div id="stamp-display" class="stamp-display" style="display: none"></div>
+        <div id="stamp-buttons" class="stamp-buttons" style="display: none">
+          <button class="stamp-btn" onclick="gameSendStamp('👍')">👍</button>
+          <button class="stamp-btn" onclick="gameSendStamp('😄')">😄</button>
+          <button class="stamp-btn" onclick="gameSendStamp('🔥')">🔥</button>
+          <button class="stamp-btn" onclick="gameSendStamp('👏')">👏</button>
+        </div>
+      </div>
+    </div>
 
-  <!-- ボードサイズ選択 -->
-  <div class="btn-group-label" id="boardSizeLabel">Board Size</div>
-  <div class="btn-group" id="size-btns">
-    <button onclick="gameSetSize(6)"  id="btnS6">6×6</button>
-    <button onclick="gameSetSize(8)"  id="btnS8" class="active">8×8</button>
-  </div>
-
-  <!-- レイヤー数選択 -->
-  <div class="btn-group-label" id="layerLabel">Layers</div>
-  <div class="btn-group" id="layer-btns">
-    <button onclick="gameSetLayers(3)" id="btnL3" class="active">3</button>
-    <button onclick="gameSetLayers(5)" id="btnL5">5</button>
-  </div>
-
-  <!-- モード選択 -->
-  <div class="mode-row">
+    <!-- モード選択 -->
     <div class="btn-group" id="mode-btns">
       <button id="btnPvP" class="active" onclick="gameSetMode('pvp')">Player vs Player</button>
       <button id="btnPvC" onclick="gameSetMode('pvc')">Player vs CPU</button>
       <button id="btnOnline" onclick="gameSetMode('online')">Online Match</button>
     </div>
-    <div id="stamp-chat" class="stamp-chat" style="display:none;">
-      <div id="stamp-display" class="stamp-display"></div>
-      <div class="stamp-buttons">
-        <button class="stamp-btn" onclick="gameSendStamp('👍')">👍</button>
-        <button class="stamp-btn" onclick="gameSendStamp('😄')">😄</button>
-        <button class="stamp-btn" onclick="gameSendStamp('🔥')">🔥</button>
-        <button class="stamp-btn" onclick="gameSendStamp('👏')">👏</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- オンライン対戦パネル -->
-  <div id="online-panel" style="display:none;">
-    <div id="online-actions" class="online-actions">
-      <button id="btnMatchmaking" onclick="gameJoinQueue()" class="online-btn">🔍 Matchmaking</button>
-      <button id="btnCreateRoom" onclick="gameCreateRoom()" class="online-btn">🏠 Create Room</button>
-      <div class="room-join">
-        <input type="text" id="roomCodeInput" placeholder="Enter code" maxlength="6" class="room-input" />
-        <button id="btnJoinRoom" onclick="gameJoinRoom()" class="online-btn">→ Join</button>
-      </div>
-    </div>
-    <div id="online-waiting" style="display:none;">
-      <div id="waitingText" class="waiting-text">対戦相手を探しています...</div>
-      <div class="waiting-spinner"></div>
-      <button onclick="gameCancelQueue()" class="cancel-btn">キャンセル</button>
-      <button id="copyCodeBtn" style="display:none;" class="copy-btn">Copy</button>
-      <button id="copyUrlBtn" style="display:none;" class="copy-url-btn">🔗 URLをコピー</button>
-    </div>
-  </div>
-
-  <!-- スコア -->
-  <div id="header">
-    <div class="score-item"><div class="sd b"></div><span id="sc-b">2</span></div>
-    <div class="score-item"><div class="sd w"></div><span id="sc-w">2</span></div>
-  </div>
-  <div id="info"></div>
-
-  <!-- メインエリア -->
-  <div id="main">
-    <div id="scene-wrap">
-      <div id="scene"></div>
-    </div>
-    <div id="panel">
-      <h3 id="panelTitle">Layer View</h3>
-      <div id="layer-tabs"></div>
-      <div id="flat-view"></div>
-      <div id="panelHint" style="font-size:0.75rem;color:#888;margin-top:2px;">Click to place</div>
-    </div>
-  </div>
-
-  <!-- コントロール -->
-  <div id="controls">
-    <button id="btnReset" onclick="gameInit()">Reset</button>
-  </div>
-  <div id="legend">
-    <span id="legendText"></span>
-  </div>
-
-  <!-- ゲーム終了オーバーレイ -->
-  <div id="gameover-overlay">
-    <div id="gameover-box">
-      <div id="go-result"></div>
-      <div id="go-detail">
-        <div class="go-disc-wrap">
-          <div class="go-disc b" id="go-disc-b"></div>
-          <div class="go-count" id="go-bc"></div>
-        </div>
-        <div style="font-size:2rem;align-self:center;color:#666;">vs</div>
-        <div class="go-disc-wrap">
-          <div class="go-disc w" id="go-disc-w"></div>
-          <div class="go-count" id="go-wc"></div>
+    <!-- オンライン対戦パネル -->
+    <div id="online-panel" style="display: none">
+      <div id="online-actions" class="online-actions">
+        <button id="btnMatchmaking" onclick="gameJoinQueue()" class="online-btn">
+          🔍 Matchmaking
+        </button>
+        <button id="btnCreateRoom" onclick="gameCreateRoom()" class="online-btn">
+          🏠 Create Room
+        </button>
+        <div class="room-join">
+          <input
+            type="text"
+            id="roomCodeInput"
+            placeholder="Enter code"
+            maxlength="6"
+            class="room-input"
+          />
+          <button id="btnJoinRoom" onclick="gameJoinRoom()" class="online-btn">→ Join</button>
         </div>
       </div>
-      <button id="go-restart" onclick="gameCloseOverlay(); gameInit();">Play Again</button>
+      <div id="online-waiting" style="display: none">
+        <div id="waitingText" class="waiting-text">対戦相手を探しています...</div>
+        <div class="waiting-spinner"></div>
+        <button onclick="gameCancelQueue()" class="cancel-btn">キャンセル</button>
+        <button id="copyCodeBtn" style="display: none" class="copy-btn">Copy</button>
+        <button id="copyUrlBtn" style="display: none" class="copy-url-btn">🔗 URLをコピー</button>
+      </div>
     </div>
-  </div>
 
-  <script type="module" src="js/main.js"></script>
-</body>
+    <!-- スコア -->
+    <div id="header">
+      <div class="score-item">
+        <div class="sd b"></div>
+        <span id="sc-b">2</span>
+      </div>
+      <div class="score-item">
+        <div class="sd w"></div>
+        <span id="sc-w">2</span>
+      </div>
+    </div>
+    <div id="info"></div>
+
+    <!-- メインエリア -->
+    <div id="main">
+      <div id="scene-wrap">
+        <div id="scene"></div>
+      </div>
+      <div id="panel">
+        <h3 id="panelTitle">Layer View</h3>
+        <div id="layer-tabs"></div>
+        <div id="flat-view"></div>
+        <div id="panelHint" style="font-size: 0.75rem; color: #888; margin-top: 2px">
+          Click to place
+        </div>
+      </div>
+    </div>
+
+    <!-- コントロール -->
+    <div id="controls">
+      <button id="btnReset" onclick="gameInit()">Reset</button>
+    </div>
+    <div id="legend">
+      <span id="legendText"></span>
+    </div>
+
+    <!-- ゲーム終了オーバーレイ -->
+    <div id="gameover-overlay">
+      <div id="gameover-box">
+        <div id="go-result"></div>
+        <div id="go-detail">
+          <div class="go-disc-wrap">
+            <div class="go-disc b" id="go-disc-b"></div>
+            <div class="go-count" id="go-bc"></div>
+          </div>
+          <div style="font-size: 2rem; align-self: center; color: #666">vs</div>
+          <div class="go-disc-wrap">
+            <div class="go-disc w" id="go-disc-w"></div>
+            <div class="go-count" id="go-wc"></div>
+          </div>
+        </div>
+        <button
+          id="go-restart"
+          onclick="
+            gameCloseOverlay();
+            gameInit();
+          "
+        >
+          Play Again
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>
