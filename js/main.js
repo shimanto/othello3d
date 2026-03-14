@@ -238,10 +238,11 @@ class Game {
     const placed = s.board.placePiece(x, y, s.turn);
     if (!placed) return;
 
+    this._advanceTurn();
+
     if (s.mode === 'online') {
       this._sendMove();
     }
-    this._advanceTurn();
   }
 
   handleLayerSelect(z) {
