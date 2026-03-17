@@ -596,7 +596,7 @@ async function createRoom() {
     document.getElementById('online-waiting').style.display = 'flex';
     setOnlineWaiting(true);
 
-    const directUrl = `${window.location.origin}/circle/?room=${data.roomId}`;
+    const directUrl = `${window.location.href.split('?')[0]}?room=${data.roomId}`;
     document.getElementById('waitingText').innerHTML =
       `ルームコード: <strong>${data.roomId}</strong><br>相手を待っています...`;
 
@@ -1088,8 +1088,8 @@ init();
           body: JSON.stringify({ action: 'join', playerId }),
         });
         const data = await res.json();
-        if (data.error) { alert(data.error); window.history.replaceState({}, '', '/circle/'); return; }
-        window.history.replaceState({}, '', '/circle/');
+        if (data.error) { alert(data.error); window.history.replaceState({}, '', window.location.pathname); return; }
+        window.history.replaceState({}, '', window.location.pathname);
         onMatched(code, data.color);
       } catch (e) { console.error('Auto join error:', e); }
     }, 300);
