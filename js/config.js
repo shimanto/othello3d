@@ -8,7 +8,7 @@
 // APIベースURL（GitHub Pages等の外部ホスティング時はCloudflare WorkersのURLを設定）
 // 例: 'https://othello3d.your-domain.workers.dev'
 // 同一オリジンで動作する場合は空文字のままでOK
-export const API_BASE = '';
+export const API_BASE = 'https://othello3d.pages.dev';
 
 // セルの状態
 export const CELL = {
