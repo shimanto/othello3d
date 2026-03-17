@@ -22,6 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache-bust static assets
+        run: |
+          V="${GITHUB_SHA::7}"
+          sed -i "s|href=\"css/style.css\"|href=\"css/style.css?v=$V\"|g" index.html
+          sed -i "s|src=\"js/main.js\"|src=\"js/main.js?v=$V\"|g" index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
