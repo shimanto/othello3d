@@ -4,4 +4,4 @@ pages_build_output_dir = "."
 
 [[kv_namespaces]]
 binding = "GAME_KV"
-id = "795b072eeb9140bfb20fc2dbae363e0c"
+id = "<YOUR_KV_NAMESPACE_ID>"

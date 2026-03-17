@@ -450,6 +450,8 @@ button.online-waiting {
 
 const EMPTY = 0, BLACK = 1, WHITE = 2;
 const SIZE = 8;
+// APIベースURL（GitHub Pages等の外部ホスティング時はCloudflare WorkersのURLを設定）
+const API_BASE = '';
 const DIR8 = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 
 /** ビューポート幅に応じたセルサイズ計算 */
@@ -549,7 +551,7 @@ async function joinQueue() {
   document.getElementById('waitingText').textContent = '対戦相手を探しています...';
   setOnlineWaiting(true);
   try {
-    const res = await fetch('/api/queue', {
+    const res = await fetch(`${API_BASE}/api/queue`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerId, boardSize: SIZE, layerCount: 1, gameType: 'torus' }),
@@ -569,7 +571,7 @@ function cancelQueue() {
   stopWaitingPoll();
   setOnlineWaiting(false);
   if (waitingQueueId) {
-    fetch(`/api/queue?queueId=${waitingQueueId}`, { method: 'DELETE' }).catch(() => {});
+    fetch(`${API_BASE}/api/queue?queueId=${waitingQueueId}`, { method: 'DELETE' }).catch(() => {});
   }
   waitingType = null;
   waitingQueueId = null;
@@ -580,7 +582,7 @@ function cancelQueue() {
 
 async function createRoom() {
   try {
-    const res = await fetch('/api/room', {
+    const res = await fetch(`${API_BASE}/api/room`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerId, boardSize: SIZE, layerCount: 1, gameType: 'torus' }),
@@ -622,7 +624,7 @@ async function joinRoom() {
   const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
   if (!code) return;
   try {
-    const res = await fetch(`/api/room/${code}`, {
+    const res = await fetch(`${API_BASE}/api/room/${code}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'join', playerId }),
@@ -669,7 +671,7 @@ function startWaitingPoll() {
   if (waitingType === 'queue') {
     waitingPollTimer = setInterval(async () => {
       try {
-        const res = await fetch(`/api/queue?queueId=${waitingQueueId}&playerId=${playerId}`);
+        const res = await fetch(`${API_BASE}/api/queue?queueId=${waitingQueueId}&playerId=${playerId}`);
         const data = await res.json();
         if (data.status === 'matched') {
           onMatched(data.roomId, data.color);
@@ -679,7 +681,7 @@ function startWaitingPoll() {
   } else if (waitingType === 'room') {
     waitingPollTimer = setInterval(async () => {
       try {
-        const res = await fetch(`/api/room/${waitingRoomId}?playerId=${playerId}`);
+        const res = await fetch(`${API_BASE}/api/room/${waitingRoomId}?playerId=${playerId}`);
         const data = await res.json();
         if (data.white && data.white.id) {
           onMatched(waitingRoomId, 'black');
@@ -695,7 +697,7 @@ function startGamePoll() {
   stopGamePoll();
   gamePollTimer = setInterval(async () => {
     try {
-      const res = await fetch(`/api/room/${roomId}?playerId=${playerId}`);
+      const res = await fetch(`${API_BASE}/api/room/${roomId}?playerId=${playerId}`);
       const data = await res.json();
       if (data.board && data.lastMove) {
         const myTurnCell = myColor === 'black' ? BLACK : WHITE;
@@ -719,7 +721,7 @@ function startGamePoll() {
 async function sendMove() {
   if (!roomId) return;
   try {
-    await fetch(`/api/room/${roomId}`, {
+    await fetch(`${API_BASE}/api/room/${roomId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1080,7 +1082,7 @@ init();
     setMode('online');
     setTimeout(async () => {
       try {
-        const res = await fetch(`/api/room/${code}`, {
+        const res = await fetch(`${API_BASE}/api/room/${code}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'join', playerId }),

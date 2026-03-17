@@ -6,7 +6,7 @@
  * i18n / オンライン対戦 / レイヤー数選択に対応。
  */
 
-import { CELL, DEFAULT_BOARD_SIZE, DEFAULT_LAYER_COUNT, setLayerCount, TIMING } from './config.js';
+import { API_BASE, CELL, DEFAULT_BOARD_SIZE, DEFAULT_LAYER_COUNT, setLayerCount, TIMING } from './config.js';
 import { Board } from './board.js';
 import { CpuPlayer } from './cpu.js';
 import { Renderer } from './renderer.js';
@@ -446,7 +446,7 @@ class Game {
     s.waitingLayerCount = s.layerCount;
 
     try {
-      const res = await fetch('/api/queue', {
+      const res = await fetch(`${API_BASE}/api/queue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -475,7 +475,7 @@ class Game {
     this._stopWaitingPoll();
     this._setOnlineWaiting(false);
     if (s.waitingQueueId) {
-      fetch(`/api/queue?queueId=${s.waitingQueueId}`, { method: 'DELETE' }).catch(() => {});
+      fetch(`${API_BASE}/api/queue?queueId=${s.waitingQueueId}`, { method: 'DELETE' }).catch(() => {});
     }
     s.waitingType = null;
     s.waitingQueueId = null;
@@ -487,7 +487,7 @@ class Game {
   async createRoom() {
     const s = this.state;
     try {
-      const res = await fetch('/api/room', {
+      const res = await fetch(`${API_BASE}/api/room`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -550,7 +550,7 @@ class Game {
     if (!code) return;
 
     try {
-      const res = await fetch(`/api/room/${code}`, {
+      const res = await fetch(`${API_BASE}/api/room/${code}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'join', playerId: s.playerId }),
@@ -644,7 +644,7 @@ class Game {
     if (s.waitingType === 'queue') {
       s.waitingPollTimer = setInterval(async () => {
         try {
-          const res = await fetch(`/api/queue?queueId=${s.waitingQueueId}&playerId=${s.playerId}`);
+          const res = await fetch(`${API_BASE}/api/queue?queueId=${s.waitingQueueId}&playerId=${s.playerId}`);
           const data = await res.json();
           if (data.status === 'matched') {
             this._onMatched(data.roomId, data.color, s.waitingBoardSize, s.waitingLayerCount);
@@ -656,7 +656,7 @@ class Game {
     } else if (s.waitingType === 'room') {
       s.waitingPollTimer = setInterval(async () => {
         try {
-          const res = await fetch(`/api/room/${s.waitingRoomId}?playerId=${s.playerId}`);
+          const res = await fetch(`${API_BASE}/api/room/${s.waitingRoomId}?playerId=${s.playerId}`);
           const data = await res.json();
           if (data.white && data.white.id) {
             this._onMatched(s.waitingRoomId, 'black', s.waitingBoardSize, s.waitingLayerCount);
@@ -687,7 +687,7 @@ class Game {
         const myColor = s.onlineMyColor;
         if (!roomId) return;
 
-        const res = await fetch(`/api/room/${roomId}?playerId=${s.playerId}`);
+        const res = await fetch(`${API_BASE}/api/room/${roomId}?playerId=${s.playerId}`);
         const data = await res.json();
 
         this._checkStamp(data);
@@ -742,7 +742,7 @@ class Game {
     s.onlineViewLayer = s.viewLayer;
 
     try {
-      await fetch(`/api/room/${s.roomId}`, {
+      await fetch(`${API_BASE}/api/room/${s.roomId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -787,7 +787,7 @@ class Game {
   async _autoJoinRoom(code) {
     const s = this.state;
     try {
-      const res = await fetch(`/api/room/${code}`, {
+      const res = await fetch(`${API_BASE}/api/room/${code}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'join', playerId: s.playerId }),
@@ -840,7 +840,7 @@ class Game {
     if (!roomId) return;
     this._displayStamp(stamp, true);
     try {
-      await fetch(`/api/room/${roomId}`, {
+      await fetch(`${API_BASE}/api/room/${roomId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'stamp', playerId: s.playerId, stamp }),
@@ -907,7 +907,7 @@ class Game {
     if (buttons && buttons.style.display !== 'none') return;
 
     try {
-      const res = await fetch('/api/queue?count=1');
+      const res = await fetch(`${API_BASE}/api/queue?count=1`);
       if (!res.ok) return;
       const data = await res.json();
       const count = data.count || 0;
