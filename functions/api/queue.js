@@ -83,9 +83,14 @@ export async function onRequestGet(context) {
   const queueId = url.searchParams.get('queueId');
   const playerId = url.searchParams.get('playerId');
 
-  // Queue count mode - return number of waiting players
+  // Queue count mode - return number of waiting players (optionally filtered by game type)
   if (url.searchParams.get('count') === '1') {
     const list = await KV.list({ prefix: 'queue:' });
+    const gameType = url.searchParams.get('gameType');
+    if (gameType) {
+      const filtered = list.keys.filter((k) => k.name.startsWith(`queue:${gameType}:`));
+      return jsonResponse({ count: filtered.length });
+    }
     return jsonResponse({ count: list.keys.length });
   }
 

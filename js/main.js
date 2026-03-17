@@ -295,7 +295,10 @@ class Game {
     this._advanceTurn();
 
     if (s.mode === 'online') {
-      this._sendMove();
+      this._stopGamePoll();
+      this._sendMove().then(() => {
+        if (!s.gameOver) this._startGamePoll();
+      });
     }
   }
 
@@ -736,7 +739,8 @@ class Game {
     const s = this.state;
     if (!s.roomId) return;
 
-    // バックグラウンド状態も同期
+    // バックグラウンド状態も同期（ポーリング再開時に古い状態で上書きされないように）
+    if (s.onlineBoard) s.onlineBoard.grid = s.board.grid;
     s.onlineTurn = s.turn;
     s.onlineGameOver = s.gameOver;
     s.onlineViewLayer = s.viewLayer;
@@ -907,10 +911,13 @@ class Game {
     if (buttons && buttons.style.display !== 'none') return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/queue?count=1`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const count = data.count || 0;
+      const [res3d, resTorus] = await Promise.all([
+        fetch(`${API_BASE}/api/queue?count=1&gameType=3d`),
+        fetch(`${API_BASE}/api/queue?count=1&gameType=torus`),
+      ]);
+      if (!res3d.ok) return;
+      const data3d = await res3d.json();
+      const count = data3d.count || 0;
 
       if (count > 0) {
         this._showChallengerMessage(count);
@@ -918,8 +925,26 @@ class Game {
         this._hideChallengerMessage();
       }
       this._lastQueueCount = count;
+
+      // トーラスオセロ側の待機者でナビリンクを点滅
+      if (resTorus.ok) {
+        const dataTorus = await resTorus.json();
+        this._updateTorusNav(dataTorus.count || 0);
+      }
     } catch {
       // ネットワークエラーは無視
+    }
+  }
+
+  _updateTorusNav(count) {
+    const link = document.getElementById('torusLink');
+    if (!link) return;
+    if (count > 0) {
+      if (!link.classList.contains('nav-blink')) {
+        link.classList.add('nav-blink');
+      }
+    } else {
+      link.classList.remove('nav-blink');
     }
   }
 

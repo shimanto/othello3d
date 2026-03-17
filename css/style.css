@@ -471,6 +471,13 @@ button:hover {
   background: #1a2a4a;
   border-color: #5dadec;
 }
+@keyframes nav-blink {
+  0%, 100% { color: #8cf; border-color: #335; background: transparent; }
+  50% { color: #f0a030; border-color: #f0a030; background: rgba(240,160,48,0.15); }
+}
+.nav-link.nav-blink {
+  animation: nav-blink 0.6s ease-in-out infinite;
+}
 .lang-select {
   padding: 4px 8px;
   font-size: 0.8rem;

@@ -277,6 +277,13 @@ button.active { background: #1e2a4e; border-color: #6af; color: #fff; }
 .top-bar .nav-link:hover {
   background: rgba(77,150,255,0.15);
 }
+@keyframes nav-blink {
+  0%, 100% { color: #4d96ff; border-color: rgba(77,150,255,0.3); background: transparent; }
+  50% { color: #f0a030; border-color: #f0a030; background: rgba(240,160,48,0.15); }
+}
+.top-bar .nav-link.nav-blink {
+  animation: nav-blink 0.6s ease-in-out infinite;
+}
 
 /* オンライン対戦UI */
 #online-panel {
@@ -363,12 +370,44 @@ button.online-waiting {
   animation: online-pulse 2s ease-in-out infinite;
   color: #f0a030 !important;
 }
+
+/* チャレンジャーメッセージ */
+#challenger-box {
+  display: none;
+  text-align: center;
+  margin: 8px auto;
+  padding: 10px 16px;
+  background: rgba(240,160,48,0.1);
+  border: 1px solid rgba(240,160,48,0.3);
+  border-radius: 10px;
+  max-width: 320px;
+}
+.challenger-msg { color: #f0a030; font-weight: bold; font-size: 1rem; }
+.challenger-count { color: #889; font-size: 0.8rem; margin-top: 2px; }
+.quick-match-btn {
+  margin-top: 6px;
+  padding: 6px 18px;
+  background: rgba(240,160,48,0.2);
+  border: 1px solid #f0a030;
+  border-radius: 6px;
+  color: #f0a030;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.quick-match-btn:hover { background: rgba(240,160,48,0.35); }
+@keyframes challenger-alert {
+  0%, 100% { border-color: rgba(240,160,48,0.3); }
+  50% { border-color: #f0a030; box-shadow: 0 0 12px rgba(240,160,48,0.4); }
+}
+#challenger-box.alert {
+  animation: challenger-alert 1s ease-in-out 3;
+}
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <a href="/" class="nav-link">3D Othello</a>
+  <a href="../" class="nav-link">3D Othello</a>
 </div>
 
 <h1>トーラスオセロ</h1>
@@ -412,6 +451,8 @@ button.online-waiting {
     </div>
   </div>
 </div>
+
+<div id="challenger-box"></div>
 
 <div id="controls" class="btn-row">
   <button onclick="init()">リセット</button>
@@ -733,7 +774,6 @@ async function sendMove() {
         lastMove: { ts: Date.now() },
       }),
     });
-    if (!gameOver) startGamePoll();
   } catch (e) { console.error('Send move error:', e); }
 }
 
@@ -838,7 +878,12 @@ function place(x, y) {
   lastFlipped = new Set(flips.map(([fx, fy]) => `${fx},${fy}`));
   wrapFlipped = detectWrapFlips(x, y, flips);
   for (const [fx, fy] of flips) board[fy][fx] = turn;
-  if (mode === 'online') sendMove();
+  if (mode === 'online') {
+    stopGamePoll();
+    sendMove().then(() => {
+      if (!gameOver) startGamePoll();
+    });
+  }
   advanceTurn();
 }
 
@@ -1073,6 +1118,104 @@ window.addEventListener('resize', () => {
 });
 
 init();
+
+// ═══════════════════════════════════════════
+//  キュー監視＆チャレンジャーメッセージ
+// ═══════════════════════════════════════════
+
+const CHALLENGER_MESSAGES = [
+  '挑戦者現る！',
+  '新たな刺客が…！',
+  '強者の気配がする…',
+  '宿敵、降臨。',
+  '逃げるなら今のうち！',
+  '嵐の予感…！',
+  '猛者が待ち構えている！',
+  '運命の対局、始まる。',
+  '次の相手はお前だ！',
+  'オセロの神が降臨！',
+  '戦いの鐘が鳴る…',
+  '勝負師が参上！',
+  '白黒つけようぜ！',
+  '全力でかかってこい！',
+];
+
+let challengerMsg = null;
+let lastQueueCount = 0;
+let queueCountTimer = null;
+
+function startQueueCountPoll() {
+  lastQueueCount = 0;
+  pollQueueCount();
+  queueCountTimer = setInterval(pollQueueCount, 3000);
+}
+
+async function pollQueueCount() {
+  if (waitingType || mode === 'online') return;
+  try {
+    const [resTorus, res3d] = await Promise.all([
+      fetch(`${API_BASE}/api/queue?count=1&gameType=torus`),
+      fetch(`${API_BASE}/api/queue?count=1&gameType=3d`),
+    ]);
+    if (!resTorus.ok) return;
+    const dataTorus = await resTorus.json();
+    const count = dataTorus.count || 0;
+    if (count > 0) {
+      showChallengerMessage(count);
+    } else if (lastQueueCount > 0) {
+      hideChallengerMessage();
+    }
+    lastQueueCount = count;
+
+    // 3Dオセロ側の待機者でナビリンクを点滅
+    if (res3d.ok) {
+      const data3d = await res3d.json();
+      update3dNav(data3d.count || 0);
+    }
+  } catch { /* ignore */ }
+}
+
+function update3dNav(count) {
+  const link = document.querySelector('.nav-link');
+  if (!link) return;
+  if (count > 0) {
+    if (!link.classList.contains('nav-blink')) link.classList.add('nav-blink');
+  } else {
+    link.classList.remove('nav-blink');
+  }
+}
+
+function showChallengerMessage(count) {
+  const box = document.getElementById('challenger-box');
+  if (!box) return;
+  if (!challengerMsg) {
+    challengerMsg = CHALLENGER_MESSAGES[Math.floor(Math.random() * CHALLENGER_MESSAGES.length)];
+  }
+  let html = `<div class="challenger-msg">${challengerMsg}</div>`;
+  if (count > 1) {
+    html += `<div class="challenger-count">${count}人が待機中</div>`;
+  }
+  html += `<button class="quick-match-btn" onclick="quickMatch()">⚔️ 対戦する</button>`;
+  box.style.display = 'block';
+  box.innerHTML = html;
+  if (lastQueueCount === 0) {
+    box.classList.remove('alert');
+    void box.offsetWidth;
+    box.classList.add('alert');
+  }
+}
+
+function hideChallengerMessage() {
+  const box = document.getElementById('challenger-box');
+  if (box) { box.innerHTML = ''; box.style.display = 'none'; box.classList.remove('alert'); }
+}
+
+function quickMatch() {
+  setMode('online');
+  setTimeout(() => joinQueue(), 100);
+}
+
+startQueueCountPoll();
 
 // ダイレクトリンクチェック
 (function checkDirectLink() {
