@@ -806,6 +806,7 @@ function init() {
 function getFlips(b, x, y, player) {
   if (b[y][x] !== EMPTY) return [];
   const opp = player === BLACK ? WHITE : BLACK;
+  const seen = new Set();
   const all = [];
 
   for (const [dx, dy] of DIR8) {
@@ -826,8 +827,15 @@ function getFlips(b, x, y, player) {
       }
     }
 
-    if (line.length > 0 && b[ny][nx] === player) {
-      all.push(...line);
+    // 通常の挟み、またはトーラス一周して自分の置いた位置に戻った場合も有効
+    if (line.length > 0 && (b[ny][nx] === player || (nx === x && ny === y))) {
+      for (const [fx, fy] of line) {
+        const key = `${fx},${fy}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          all.push([fx, fy]);
+        }
+      }
     }
   }
 
