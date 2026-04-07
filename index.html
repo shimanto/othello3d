@@ -1,9 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3D Othello</title>
+    <title>Othello3D - 重力付き立体オセロ | 3D Reversi with Gravity</title>
+    <meta name="description" content="Othello3D: 重力付き3D空間オセロゲーム。26方向反転、最大5層、オンライン対戦対応。ブラウザですぐ遊べる無料ゲーム。3D Reversi game with gravity, 26-direction flips, and online multiplayer." />
+    <meta name="keywords" content="Othello3D, 3D Othello, 立体オセロ, 3D Reversi, オンライン対戦, ボードゲーム, ブラウザゲーム, gravity othello" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Othello3D - 重力付き立体オセロ" />
+    <meta property="og:description" content="26方向反転 × 重力 × 最大5層。ブラウザで遊べる3Dオセロ。CPU対戦・オンライン対戦対応。" />
+    <meta property="og:site_name" content="Othello3D" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Othello3D - 3D Reversi with Gravity" />
+    <meta name="twitter:description" content="Play Othello3D in your browser. 26-direction flips, gravity, up to 5 layers, online multiplayer." />
+
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -12,7 +26,7 @@
       <select id="langSelect" class="lang-select" onchange="gameChangeLang(this.value)"></select>
     </div>
 
-    <h1 id="title">3D Othello</h1>
+    <h1 id="title">Othello3D</h1>
     <div class="subtitle" id="subtitle">8x8 3 layers</div>
 
     <!-- 設定行＋スタンプ/広告エリア -->
@@ -30,7 +44,7 @@
         </div>
       </div>
       <div id="stamp-chat" class="stamp-chat">
-        <div id="stamp-ad" class="stamp-ad">3D Othello</div>
+        <div id="stamp-ad" class="stamp-ad">Othello3D</div>
         <div id="stamp-display" class="stamp-display" style="display: none"></div>
         <div id="stamp-buttons" class="stamp-buttons" style="display: none">
           <button class="stamp-btn" onclick="gameSendStamp('👍')">👍</button>

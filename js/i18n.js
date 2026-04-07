@@ -1,7 +1,7 @@
 const translations = {
   en: {
-    title: '3D Othello',
-    subtitle: (size, layers) => `${size}x${size} ${layers} layers`,
+    title: 'Othello3D',
+    subtitle: (size, layers) => `${size}x${size} ${layers} layers — gravity & 26-direction flips`,
     boardSize: 'Board Size',
     layers: 'Layers',
     pvp: 'Player vs Player',
@@ -46,7 +46,7 @@ const translations = {
     joinBtn: '→ Join',
   },
   ja: {
-    title: '立体オセロ 3D',
+    title: 'Othello3D ─ 立体オセロ',
     subtitle: (size, layers) => `${size}×${size} × ${layers}層 ─ 重力あり・26方向反転`,
     boardSize: 'ボードサイズ',
     layers: '層数',
@@ -91,8 +91,8 @@ const translations = {
     joinBtn: '→ 参加',
   },
   zh: {
-    title: '3D 黑白棋',
-    subtitle: (size, layers) => `${size}x${size} ${layers}层`,
+    title: 'Othello3D ─ 3D 黑白棋',
+    subtitle: (size, layers) => `${size}x${size} ${layers}层 — 重力·26方向翻转`,
     boardSize: '棋盘大小',
     layers: '层数',
     pvp: '双人对战',
@@ -136,8 +136,8 @@ const translations = {
     joinBtn: '→ 加入',
   },
   es: {
-    title: 'Othello 3D',
-    subtitle: (size, layers) => `${size}x${size} ${layers} capas`,
+    title: 'Othello3D',
+    subtitle: (size, layers) => `${size}x${size} ${layers} capas — gravedad y 26 direcciones`,
     boardSize: 'Tamaño',
     layers: 'Capas',
     pvp: 'Jugador vs Jugador',
@@ -182,8 +182,8 @@ const translations = {
     joinBtn: '→ Unirse',
   },
   fr: {
-    title: 'Othello 3D',
-    subtitle: (size, layers) => `${size}x${size} ${layers} couches`,
+    title: 'Othello3D',
+    subtitle: (size, layers) => `${size}x${size} ${layers} couches — gravité et 26 directions`,
     boardSize: 'Taille',
     layers: 'Couches',
     pvp: 'Joueur vs Joueur',
@@ -228,8 +228,8 @@ const translations = {
     joinBtn: '→ Rejoindre',
   },
   de: {
-    title: 'Othello 3D',
-    subtitle: (size, layers) => `${size}x${size} ${layers} Ebenen`,
+    title: 'Othello3D',
+    subtitle: (size, layers) => `${size}x${size} ${layers} Ebenen — Schwerkraft & 26 Richtungen`,
     boardSize: 'Größe',
     layers: 'Ebenen',
     pvp: 'Spieler vs Spieler',
@@ -274,8 +274,8 @@ const translations = {
     joinBtn: '→ Beitreten',
   },
   pt: {
-    title: 'Othello 3D',
-    subtitle: (size, layers) => `${size}x${size} ${layers} camadas`,
+    title: 'Othello3D',
+    subtitle: (size, layers) => `${size}x${size} ${layers} camadas — gravidade e 26 direções`,
     boardSize: 'Tamanho',
     layers: 'Camadas',
     pvp: 'Jogador vs Jogador',
@@ -320,8 +320,8 @@ const translations = {
     joinBtn: '→ Entrar',
   },
   ko: {
-    title: '3D 오셀로',
-    subtitle: (size, layers) => `${size}x${size} ${layers}층`,
+    title: 'Othello3D ─ 3D 오셀로',
+    subtitle: (size, layers) => `${size}x${size} ${layers}층 — 중력 & 26방향 뒤집기`,
     boardSize: '보드 크기',
     layers: '층수',
     pvp: '대인전',
@@ -365,8 +365,8 @@ const translations = {
     joinBtn: '→ 참가',
   },
   ru: {
-    title: 'Отелло 3D',
-    subtitle: (size, layers) => `${size}x${size} ${layers} слоёв`,
+    title: 'Othello3D ─ Отелло 3D',
+    subtitle: (size, layers) => `${size}x${size} ${layers} слоёв — гравитация и 26 направлений`,
     boardSize: 'Размер',
     layers: 'Слои',
     pvp: 'Игрок vs Игрок',
@@ -411,8 +411,8 @@ const translations = {
     joinBtn: '→ Войти',
   },
   hi: {
-    title: '3D ओथेलो',
-    subtitle: (size, layers) => `${size}x${size} ${layers} परतें`,
+    title: 'Othello3D ─ 3D ओथेलो',
+    subtitle: (size, layers) => `${size}x${size} ${layers} परतें — गुरुत्वाकर्षण और 26 दिशाएं`,
     boardSize: 'बोर्ड आकार',
     layers: 'परतें',
     pvp: 'खिलाड़ी vs खिलाड़ी',
@@ -456,8 +456,8 @@ const translations = {
     joinBtn: '→ शामिल हों',
   },
   ar: {
-    title: 'أوثيلو ثلاثي الأبعاد',
-    subtitle: (size, layers) => `${size}x${size} ${layers} طبقات`,
+    title: 'Othello3D ─ أوثيلو ثلاثي الأبعاد',
+    subtitle: (size, layers) => `${size}x${size} ${layers} طبقات — الجاذبية و26 اتجاهاً`,
     boardSize: 'حجم اللوحة',
     layers: 'الطبقات',
     pvp: 'لاعب ضد لاعب',
