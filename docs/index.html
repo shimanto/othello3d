@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>3D立体オセロ - ドキュメント</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="3D立体オセロ プロジェクトのドキュメント集">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='56'%3E%26%23x26ab;%3B%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='56'%3E%26%23x26ab;%3B%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    :root {
+      --theme-color: #1a1a2e;
+    }
+    html, body {
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .markdown-section { max-width: 900px; padding: 30px 20px 40px; }
+    .sidebar-nav li.active > a { color: var(--theme-color); font-weight: 600; }
+    .markdown-section h1 { border-bottom: 2px solid var(--theme-color); padding-bottom: 0.3em; word-break: break-word; }
+    .markdown-section h2, .markdown-section h3, .markdown-section h4 { word-break: break-word; }
+    .markdown-section table { display: table; width: 100%; word-break: break-word; }
+    .markdown-section pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .markdown-section img { max-width: 100%; height: auto; }
+
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-300px);
+        transition: transform 0.25s ease-out;
+        width: 80vw; max-width: 320px; padding-top: 60px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .sidebar-toggle { width: 44px; height: 44px; padding: 10px 0 0 10px; z-index: 30; top: 10px; left: 10px; background: transparent; }
+      .sidebar-toggle span { background-color: var(--theme-color); }
+      body.close .sidebar { transform: translateX(0); }
+      .content { left: 0; padding-top: 50px; }
+      .markdown-section { padding: 15px 16px 40px; font-size: 15px; line-height: 1.65; }
+      .markdown-section h1 { font-size: 1.6em; }
+      .markdown-section h2 { font-size: 1.3em; }
+      .markdown-section pre { font-size: 13px; }
+      .search input[type="search"] { font-size: 16px; padding: 12px; }
+    }
+
+    @media screen and (max-width: 480px) {
+      .markdown-section { padding: 12px 12px 40px; font-size: 14.5px; }
+      .markdown-section h1 { font-size: 1.4em; }
+      .markdown-section table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">読み込み中...</div>
+  <script>
+    window.$docsify = {
+      name: "3D立体オセロ",
+      repo: "https://github.com/shimanto/othello3d",
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      homepage: 'README.md',
+      search: { placeholder: 'ドキュメント内を検索', noData: '見つかりませんでした', depth: 3 },
+      copyCode: { buttonText: 'コピー', errorText: 'コピー失敗', successText: 'コピー済' },
+      pagination: { previousText: '前へ', nextText: '次へ', crossChapter: true, crossChapterText: true },
+      alias: { '/.*/_sidebar.md': '/_sidebar.md' },
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-lua.min.js"></script>
+</body>
+</html>
