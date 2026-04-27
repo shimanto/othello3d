@@ -1,8 +1,8 @@
 # 3D立体オセロ - ドキュメント
 
 <p align="center">
-  <img src="assets/_overview-manga.png" alt="othello3d プロジェクト概要漫画" width="320" />
-  <img src="assets/README-infographic.png" alt="3D立体オセロ - ドキュメント 図解" width="320" />
+  <img src="assets/oto-overview-manga.png" alt="othello3d プロジェクト概要漫画" width="320" />
+  <img src="assets/oto-README-infographic.png" alt="3D立体オセロ - ドキュメント 図解" width="320" />
 </p>
 
 > 🖼️ 図解付きページ — 上が **プロジェクト概要漫画**、下が **このページ専用インフォグラフィック** です。

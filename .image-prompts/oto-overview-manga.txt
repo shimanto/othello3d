@@ -1,0 +1,36 @@
+A vertical 9:16 portrait 4-panel manga page in Crayon Shin-chan (クレヨンしんちゃん) art style.
+
+=== STYLE (must match the attached character model sheet exactly) ===
+Bold thick black outlines, flat color fills, no gradients. Round bean-shaped heads with simple dot eyes, thick black eyebrows. Small mouths that go huge when expressive. 1:3 head-to-body chibi proportions. Pink cheek blush. Sparkles, sweat drops, action lines, 「！？」 emphasis marks. Color palette: light teal/aqua (#5DDFD5), white, light gray, dark slate outlines, beige skin, dark brown hair.
+
+=== RECURRING CHARACTERS (match model sheet pixel-precisely) ===
+ミドリ (29歳, female): shoulder-length brown bob with center part, light teal dot-pattern blouse with white round collar, navy slacks, brown loafers.
+タツヤ (30歳, male): short dark brown side-parted hair, gray-blue casual shirt over white tee, dark gray jeans, sneakers.
+Both must have IDENTICAL appearance across all 4 panels. Only expressions/poses change.
+
+=== STORYLINE: 4 panels stacked top-to-bottom ===
+
+Panel 1 — TITLE: 「3D オセロやりたい！」
+- ミドリ sits on a sofa holding a classic flat 2D Othello board with frustrated expression, several sweat drops. Speech bubble: 「2D 飽きたー！もっと立体的に勝負したい！」 タツヤ next to her with a thoughtful 「うーん…」 expression.
+- Caption: 「クラシックなオセロでは物足りなくなって…」
+
+Panel 2 — TITLE: 「立体オセロ爆誕」
+- A giant 3D Othello board floats in the panel — multiple stacked layers (e.g., 3 layers of 4×4 grids) of black and white discs in 3D space. Arrows in 26 directions radiate from a central red disc, labeled 「26 方向反転」.
+- Both characters look up at it with sparkle eyes. ミドリ: 「うわぁ！」 タツヤ: 「これは深い！」
+- Caption: 「重力 + 26 方向反転 + 複数レイヤー = 戦略の幅が爆発」
+
+Panel 3 — TITLE: 「Cloudflare KV でオンライン対戦」
+- A diagram on the right side: Frontend "GitHub Pages" → 矢印 → "Cloudflare Workers" → "KV Storage" with example keys 「queue:...」「room:...」「player-room:...」.
+- ミドリ on the left side using a smartphone showing "オンライン対戦待機中…", タツヤ on the right showing his smartphone with the same UI but "Match found!". Their phones connect via a teal arrow labeled 「ルームコードで友達と対戦」.
+- Caption: 「Pages Functions + KV だけで Real-time マッチング、無料枠で十分」
+
+Panel 4 — TITLE: 「3D の戦略を学ぼう」
+- Both characters smiling and raising an arm in unison, mouths open in 「楽しいー！」. Behind them, a 3D Othello scene: black and white discs floating in space with layered grids, plus small icons for game modes (PvP / PvC / Online / Private Room).
+- A small URL bar: 「shimanto.github.io/othello3d/」
+- Caption: 「Cloudflare KV を実践で学べる教材としても優秀」
+
+=== TECHNICAL CONSTRAINTS ===
+- Aspect ratio: 9:16 vertical portrait, NOT landscape.
+- All Japanese text accurately rendered.
+- 4 panels stacked vertically with thin white gutters and bold black borders.
+- Maintain Shin-chan-style proportions and identical character appearance across all panels.
